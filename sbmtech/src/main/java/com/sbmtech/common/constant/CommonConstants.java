@@ -26,6 +26,8 @@ public class CommonConstants {
 	public static final String LOGGER_SERVICES_INFO = "servicesinfo";
 	public static final String LOGGER_SERVICES_BRE = "servicesbre";
 	
+	public static final String[] ATTACHMENT_IMAGE_TYPES = {"image/jpeg", "image/png", "image/jpg","application/pdf"};
+	public static final String DATE_ddMMyyyy_HH_MM_SS_SSS = "dd/mm/yyyy hh:mm:ss.mmm";
 	public static final String DATE_ddMMyyyy = "dd/MM/yyyy";
     public static final String DATE_yyyyMMddHHmmss = "yyyyMMddHHmmss";
     public static final String DATEyyyyMMdd = "yyyyMMdd";
@@ -45,6 +47,7 @@ public class CommonConstants {
     public static final int INT_ONE_MEMBER = 1;
     public static final int INT_TWO_GROUP = 2;
     public static final int INT_THREE_COMPNAY = 3;
+    public static final String FLOW_TYPE="Registration";
 }
 
 

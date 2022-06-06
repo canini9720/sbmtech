@@ -26,6 +26,9 @@ public class User {
 
 	private String password;
 	
+	@Column(name="email")
+	private String email;
+	
 	@Column(name = "enabled", columnDefinition="BIT")
 	private Boolean enabled;
 
@@ -36,12 +39,13 @@ public class User {
 	private Set<Role> roles = new HashSet<>();
 	public User() {
 	}
-	public User(String username, String firstname,String lastname, Integer memberCategory, String password) {
+	public User(String username, String firstname,String lastname, Integer memberCategory, String password,String email) {
 		this.username = username;
 		this.password = password;
 		this.firstname=firstname;
 		this.lastname=lastname;
 		this.memberCategory=memberCategory;
+		this.email=email;
 	}
 	
 	public Long getUserId() {
@@ -92,6 +96,12 @@ public class User {
 	}
 	public void setEnabled(Boolean enabled) {
 		this.enabled = enabled;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
 	}
 	
 }

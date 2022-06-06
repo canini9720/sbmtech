@@ -10,7 +10,7 @@ import com.sbmtech.model.User;
 import com.sbmtech.repository.UserRepository;
 @Service
 @Transactional
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	UserRepository userRepository;
@@ -20,5 +20,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 		return UserDetailsImpl.build(user);
+	}
+	
+	///@Override
+	public User getUserById(Long userId) throws UsernameNotFoundException {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new UsernameNotFoundException("UserId Not Found: " + userId));
+		return user;
 	}
 }

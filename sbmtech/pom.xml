@@ -10,7 +10,7 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.sbmtech</groupId>
-	<artifactId>sbmtech-jwt</artifactId>
+	<artifactId>sbmtech</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>sbmtech-jwt</name>
 	<description>Demo project for Spring Boot</description>
@@ -91,12 +91,30 @@
 			<groupId>net.logstash.log4j</groupId>
 			<artifactId>jsonevent-layout</artifactId>
 			<version>1.7</version>
-		</dependency> 
+		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
 			<version>1.9.4</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>1.16</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+<dependency>
+    <groupId>commons-codec</groupId>
+    <artifactId>commons-codec</artifactId>
+    <version>1.15</version>
+</dependency>
+		
 	</dependencies>
 
 	<build>

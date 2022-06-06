@@ -10,6 +10,7 @@ import javax.validation.Valid;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.RefreshToken;
 import com.sbmtech.model.Role;
@@ -30,8 +32,10 @@ import com.sbmtech.model.User;
 import com.sbmtech.payload.request.LoginRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
+import com.sbmtech.payload.response.CommonRespone;
 import com.sbmtech.payload.response.JwtResponse;
 import com.sbmtech.payload.response.MessageResponse;
+import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
@@ -39,12 +43,16 @@ import com.sbmtech.security.jwt.JwtUtils;
 import com.sbmtech.security.jwt.exception.TokenRefreshException;
 import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.security.services.UserDetailsImpl;
+import com.sbmtech.service.EmailService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
+	
+	@Value("${secret.key}")
+	private String secretKey;
 	
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -60,6 +68,9 @@ public class AuthController {
 	@Autowired
 	
 	RefreshTokenService refreshTokenService;
+	
+	@Autowired
+	EmailService emailService;
 	
 	@Autowired
 	JwtUtils jwtUtils;
@@ -92,11 +103,16 @@ public class AuthController {
 	            "Refresh token is not in database!"));
 	  }
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
+	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-			return ResponseEntity
-					.badRequest()
-					.body(new MessageResponse("Error: Username is already taken!"));
+			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
+			resp.setResponseMessage("Error: Username is already taken!");
+			return ResponseEntity.badRequest().body(resp);
+		}
+		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
+			resp.setResponseMessage("Error: email is already taken");
+			return ResponseEntity.badRequest().body(resp);
 		}
 		
 		// Create new user's account
@@ -104,7 +120,8 @@ public class AuthController {
 							 signUpRequest.getFirstname(),
 							 signUpRequest.getLastname(),
 							 signUpRequest.getMemberCategory(),
-							 encoder.encode(signUpRequest.getPassword()));
+							 encoder.encode(signUpRequest.getPassword()),
+							 signUpRequest.getEmail());
 		Set<String> strRoles = new HashSet<>();
 		Set<Role> roles = new HashSet<>();
 		if(signUpRequest.getMemberCategory()==CommonConstants.INT_ONE_MEMBER) {
@@ -148,7 +165,12 @@ public class AuthController {
 		
 		user.setRoles(roles);
 		user.setEnabled(false);
-		userRepository.save(user);
-		return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+		User dbUser=userRepository.save(user);
+		SignupResponse resp=new SignupResponse(CommonConstants.SUCCESS_CODE);
+		//resp.setResponseCode(CommonConstants.SUCCESS_CODE);
+		//resp.setResponseStatus(CommonConstants.SUCCESS_DESC);
+		resp.setResponseDesc("Proceed validate OTP to complete Registration Process");
+		resp.setUserId(CommonUtil.encrypt(CommonUtil.getStringValofObject(dbUser.getUserId()),secretKey));
+		return ResponseEntity.ok(resp);
 	}
 }
