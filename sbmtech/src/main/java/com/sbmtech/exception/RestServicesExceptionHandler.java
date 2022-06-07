@@ -57,7 +57,8 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 	}
 	
 	@ExceptionHandler(value = { BusinessException.class, ValidationException.class })
-	protected ResponseEntity<String> handleValidationAndBusinessExceptions(Exception ex, WebRequest request) {
+	@ResponseBody
+	protected ResponseEntity<Object> handleValidationAndBusinessExceptions(Exception ex, WebRequest request) {
 		
 		loggerInfo.info("<< handleValidationAndBusinessExceptions >>");
 		
@@ -66,8 +67,15 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 		
 		
 		String errorMsg = getApplicationErrorMessage(ex);
-		
-	   return new ResponseEntity<String>(errorMsg, getHttpStatus(ex));
+		JSONParser parser = new JSONParser();
+		JSONObject json=null;
+		try {
+			json = (JSONObject) parser.parse(errorMsg);
+			System.out.println(json);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} 
+		return new ResponseEntity<Object>(json, getHttpStatus(ex));
 	 }
 	
 	@ExceptionHandler(value = { Exception.class })
@@ -87,10 +95,8 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 			json = (JSONObject) parser.parse(errorMsg);
 			System.out.println(json);
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
-	   //return new ResponseEntity<String>(errorMsg, getHttpStatus(ex));
 		return new ResponseEntity<Object>(json, getHttpStatus(ex));
 	 }
 	

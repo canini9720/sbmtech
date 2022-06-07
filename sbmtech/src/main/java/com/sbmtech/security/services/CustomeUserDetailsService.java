@@ -7,4 +7,7 @@ import com.sbmtech.model.User;
 public interface CustomeUserDetailsService extends UserDetailsService {
 
 	public User getUserById(Long userId) throws Exception;
+	public void isVerified(UserDetailsImpl userDetails ) throws Exception ;
+	
+	
 }

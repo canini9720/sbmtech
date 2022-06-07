@@ -20,12 +20,13 @@ public class UserDetailsImpl implements UserDetails {
 	@JsonIgnore
 	private String password;
 	private Boolean enabled;
+	private Boolean verified;
 	
 	private Collection<? extends GrantedAuthority> authorities;
 	
 	
 	public UserDetailsImpl(Long id, String username, String firstname,String lastname,Integer memberCategory, String password,Boolean enabled,
-			Collection<? extends GrantedAuthority> authorities) {
+			Boolean verified, Collection<? extends GrantedAuthority> authorities) {
 		this.id = id;
 		this.username = username;
 		this.firstname = firstname;
@@ -33,6 +34,7 @@ public class UserDetailsImpl implements UserDetails {
 		this.memberCategory = memberCategory;
 		this.password = password;
 		this.enabled=enabled;
+		this.verified=verified;
 		this.authorities = authorities;
 	}
 	public static UserDetailsImpl build(User user) {
@@ -47,6 +49,7 @@ public class UserDetailsImpl implements UserDetails {
 				user.getMemberCategory(),
 				user.getPassword(), 
 				user.getEnabled(),
+				user.getVerified(),
 				authorities);
 	}
 	@Override
@@ -80,6 +83,9 @@ public class UserDetailsImpl implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return enabled;
+	}
+	public boolean isVerified() {
+		return verified;
 	}
 	@Override
 	public boolean equals(Object o) {

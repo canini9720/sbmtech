@@ -31,7 +31,16 @@ public class User {
 	
 	@Column(name = "enabled", columnDefinition="BIT")
 	private Boolean enabled;
+	
+	@Column(name = "verified", columnDefinition="BIT")
+	private Boolean verified;
 
+	public Boolean getVerified() {
+		return verified;
+	}
+	public void setVerified(Boolean verified) {
+		this.verified = verified;
+	}
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(	name = "user_roles", 
 				joinColumns = @JoinColumn(name = "user_id"), 
@@ -103,5 +112,7 @@ public class User {
 	public void setEmail(String email) {
 		this.email = email;
 	}
+	
+	
 	
 }

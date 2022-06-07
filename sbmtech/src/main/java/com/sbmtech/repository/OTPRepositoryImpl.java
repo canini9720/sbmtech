@@ -44,7 +44,7 @@ public class OTPRepositoryImpl extends JdbcCommonDao implements OTPRespositoryCu
 
 	@Override
 	public Boolean validateOtp(Long verificationId,Integer otpCode) throws Exception {
-		StoredProcedureQuery qry = this.getEm().createStoredProcedureQuery("sp_validate_otp2");
+		StoredProcedureQuery qry = this.getEm().createStoredProcedureQuery("sp_validate_otp");
 		
 		qry.registerStoredProcedureParameter("p_id", Long.class, ParameterMode.IN);
 		qry.registerStoredProcedureParameter("p_user_otp", Integer.class, ParameterMode.IN);

@@ -34,13 +34,13 @@ import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.response.CommonRespone;
 import com.sbmtech.payload.response.JwtResponse;
-import com.sbmtech.payload.response.MessageResponse;
 import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.security.jwt.JwtUtils;
 import com.sbmtech.security.jwt.exception.TokenRefreshException;
+import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.EmailService;
@@ -73,14 +73,18 @@ public class AuthController {
 	EmailService emailService;
 	
 	@Autowired
+	CustomeUserDetailsService userDetailsService;
+	
+	@Autowired
 	JwtUtils jwtUtils;
 	
 	@PostMapping("/signin")
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)throws Exception {
 	    Authentication authentication = authenticationManager
 	        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+	    userDetailsService.isVerified(userDetails);
 
 	    String jwt = jwtUtils.generateJwtToken(userDetails);
 	    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
@@ -89,6 +93,9 @@ public class AuthController {
 	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
 	        userDetails.getUsername(), roles));
 	  }
+	
+	
+	
 	  @PostMapping("/refreshtoken")
 	  public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
 	    String requestRefreshToken = request.getRefreshToken();
@@ -164,7 +171,8 @@ public class AuthController {
 			});
 		
 		user.setRoles(roles);
-		user.setEnabled(false);
+		user.setEnabled(true);
+		user.setVerified(false);
 		User dbUser=userRepository.save(user);
 		SignupResponse resp=new SignupResponse(CommonConstants.SUCCESS_CODE);
 		//resp.setResponseCode(CommonConstants.SUCCESS_CODE);
