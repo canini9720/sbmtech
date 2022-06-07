@@ -2,6 +2,7 @@ package com.sbmtech.service.impl;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -17,6 +18,7 @@ import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -26,6 +28,7 @@ import javax.mail.util.ByteArrayDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -39,42 +42,49 @@ import com.sbmtech.dto.NotificationEmailSenderDTO;
 import com.sbmtech.service.EmailService;
 
 @Service
+@DependsOn("AppSystemProp")
 public class EmailServiceImpl implements EmailService{
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
 	private static final Logger logger = Logger.getLogger(CommonConstants.LOGGER_SERVICES_ERROR);
 	
-	static Properties properties=new Properties();
+	//static Properties properties=new Properties();
 
-	@Autowired
-	private JavaMailSender javaMailSender;
+	
 	
 	@Autowired
 	private Environment env;
 	
-	 @Autowired
-	 MailProperties mailProperties;
-	 
+	@Autowired
+	private MailProperties mailProperties;
+	
+	private String mailAuth="";
+	private String mailHost="";
+	private String mailPort="";
+	private String mailStartTls="";
+	private String emailUsername="";
+	private String emailPwd="";
+	
+	@PostConstruct
+	public void initialize() {
+		
+		
+		mailAuth = AppSystemPropImpl.props.get("email.smtp.auth");
+		mailHost = AppSystemPropImpl.props.get("mail.smtp.host");
+		mailPort = AppSystemPropImpl.props.get("email.port");
+		mailStartTls= AppSystemPropImpl.props.get("email.smtp.starttls");
+		emailUsername = AppSystemPropImpl.props.get("email.username");
+		emailPwd = AppSystemPropImpl.props.get("email.password");
+	}
+	 /*
 	 @PostConstruct
 	 public void init() throws Exception {
 		 System.out.println("mailProperties="+mailProperties.getUsername());
 		 properties= CommonBeanUtil.toProperties(mailProperties);
 		 System.out.println("properties="+properties);
-	 }
+	 }*/
 	
 	
-	@Override
-	public void testEmail(String toMail,String subject,String body) {
-		SimpleMailMessage msg=new SimpleMailMessage();
-		msg.setFrom("hasan234abu@gmail.com");
-		msg.setTo(toMail);
-		msg.setSubject(subject);
-		msg.setText(body);
-		javaMailSender.send(msg);
-		
-		System.out.println("Email send successfully");
-		
-	}
 	
 	private void sendEmailByGmail(NotificationEmailSenderDTO dto) throws MessagingException{
 		/*
@@ -153,32 +163,69 @@ public class EmailServiceImpl implements EmailService{
 		
 		Properties props = new Properties();
 		
-		boolean auth = Boolean.parseBoolean(mailProperties.getAuth().trim());
+		boolean auth = Boolean.parseBoolean(mailAuth.trim());
 		
 		Session session = null;
 		
 		if(auth){
 			
-			props.put("mail.smtp.host", mailProperties.getHost());
-			props.put("mail.smtp.port", mailProperties.getHost());
-			props.put("mail.smtp.auth", mailProperties.getAuth());
-			props.put("mail.smtp.ssl.enable", mailProperties.getStarttls());
+			props.put("mail.smtp.host", mailHost);
+			props.put("mail.smtp.port", mailPort);
+			props.put("mail.smtp.auth", mailAuth);
+			//props.put("mail.smtp.ssl.enable", mailAuth);
+			props.put("mail.smtp.starttls.enable", mailAuth);
 			
 			session = Session.getInstance(props,
 				new javax.mail.Authenticator() {
 					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(mailProperties.getUsername(), mailProperties.getPassword());
+						return new PasswordAuthentication(emailUsername,emailPwd);
 					}
 				});
 		}else{
 		
-			props.put("mail.smtp.host", mailProperties.getHost());
-			props.put("mail.smtp.auth", mailProperties.getAuth());
+			props.put("mail.smtp.host", mailHost);
+			props.put("mail.smtp.auth", mailAuth);
 			session = Session.getInstance(props);
 		}
 		
 		return session;
 	}
+	
+	 public void sendPlainTextEmail(String subject, String message) throws Exception {
+
+	        // sets SMTP server properties
+	        Properties properties = new Properties();
+	        properties.put("mail.smtp.host", mailHost);
+	        properties.put("mail.smtp.port", mailPort);
+	        properties.put("mail.smtp.auth", "true");
+	        properties.put("mail.smtp.starttls.enable", "true");
+	// *** BEGIN CHANGE
+	        properties.put("mail.smtp.user", "hasan234abu@gmail.com");
+
+	        // creates a new session, no Authenticator (will connect() later)
+	        Session session = Session.getDefaultInstance(properties);
+	// *** END CHANGE
+
+	        // creates a new e-mail message
+	        Message msg = new MimeMessage(session);
+
+	        msg.setFrom(new InternetAddress(emailUsername));
+	        InternetAddress[] toAddresses = { new InternetAddress("ashrafsnj@gmail.com") };
+	        msg.setRecipients(Message.RecipientType.TO, toAddresses);
+	        msg.setSubject(subject);
+	        msg.setSentDate(new Date());
+	        // set plain text message
+	        msg.setText(message);
+
+	// *** BEGIN CHANGE
+	        // sends the e-mail
+	        Transport t = session.getTransport("smtp");
+	        t.connect(emailUsername, emailPwd);
+	        t.sendMessage(msg, msg.getAllRecipients());
+	        t.close();
+	// *** END CHANGE
+
+	    }
 	public boolean sendEmailWithMultiAttachments(NotificationEmailSenderDTO dto){
 		
 		boolean isEmailSent = false;

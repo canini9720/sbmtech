@@ -42,4 +42,22 @@ public class OTPRepositoryImpl extends JdbcCommonDao implements OTPRespositoryCu
 		return opt;
 	}
 
+	@Override
+	public Boolean validateOtp(Long verificationId,Integer otpCode) throws Exception {
+		StoredProcedureQuery qry = this.getEm().createStoredProcedureQuery("sp_validate_otp2");
+		
+		qry.registerStoredProcedureParameter("p_id", Long.class, ParameterMode.IN);
+		qry.registerStoredProcedureParameter("p_user_otp", Integer.class, ParameterMode.IN);
+		qry.registerStoredProcedureParameter("p_result", Integer.class, ParameterMode.OUT);
+		
+		qry.setParameter("p_id",verificationId)
+			.setParameter("p_user_otp", otpCode);
+		Integer row = qry.executeUpdate();
+
+		if(row != null  && CommonUtil.getBooleanValofObject(row)){
+			return true;
+		}
+		return false;
+	}
+
 }

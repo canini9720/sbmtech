@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -117,6 +118,10 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 			
 			errorMsg = errorMsg.replace("\'", "");
 		}else if(ex instanceof AccessDeniedException){
+			errorMsg = ex.getMessage();
+			
+			errorMsg = errorMsg.replace("\'", "");
+		}else if(ex instanceof DisabledException){
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");

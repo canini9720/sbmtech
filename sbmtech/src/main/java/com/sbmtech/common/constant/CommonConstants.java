@@ -26,6 +26,7 @@ public class CommonConstants {
 	public static final String LOGGER_SERVICES_INFO = "servicesinfo";
 	public static final String LOGGER_SERVICES_BRE = "servicesbre";
 	
+	public static final String CHARSET_UTF8 = ";charset=" + "UTF-8";
 	public static final String[] ATTACHMENT_IMAGE_TYPES = {"image/jpeg", "image/png", "image/jpg","application/pdf"};
 	public static final String DATE_ddMMyyyy_HH_MM_SS_SSS = "dd/mm/yyyy hh:mm:ss.mmm";
 	public static final String DATE_ddMMyyyy = "dd/MM/yyyy";

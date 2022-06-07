@@ -4,7 +4,8 @@ import com.sbmtech.dto.NotificationEmailSenderDTO;
 
 public interface EmailService {
 	
-	public void testEmail(String toMail,String subject,String body);
+	
 	public boolean sendEmailWithMultiAttachments(NotificationEmailSenderDTO dto);
+	 public void sendPlainTextEmail(String subject, String message) throws Exception;
 
 }
