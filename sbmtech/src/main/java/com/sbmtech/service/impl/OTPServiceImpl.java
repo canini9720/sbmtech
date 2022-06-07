@@ -32,9 +32,9 @@ public class OTPServiceImpl implements OTPService {
 	
 
 	@Override
-	public OtpDTO sendOTP(Long userId,String email) throws Exception {
+	public OtpDTO sendOTP(Long userId,String email,String flowType) throws Exception {
 		Long smsCode=OTPGenerator.getCode();
-		Optional<OtpDTO> otp=otpRepository.saveOtp(userId, CommonUtil.getIntValofObject(smsCode),  email,CommonConstants.FLOW_TYPE);
+		Optional<OtpDTO> otp=otpRepository.saveOtp(userId, CommonUtil.getIntValofObject(smsCode),  email,flowType);
 		
 		NotificationEmailSenderDTO dto=new NotificationEmailSenderDTO();
 		dto.setEmailTo("ashrafsnj@gmail.com");

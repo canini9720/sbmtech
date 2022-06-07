@@ -48,7 +48,8 @@ public class CommonConstants {
     public static final int INT_ONE_MEMBER = 1;
     public static final int INT_TWO_GROUP = 2;
     public static final int INT_THREE_COMPNAY = 3;
-    public static final String FLOW_TYPE="Registration";
+    public static final String FLOW_TYPE_REGISTRATION="Registration";
+    public static final String FLOW_TYPE_FORGETPWD="ForgetPwd";
 }
 
 

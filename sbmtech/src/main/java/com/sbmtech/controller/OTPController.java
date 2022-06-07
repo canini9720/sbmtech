@@ -41,7 +41,7 @@ public class OTPController {
 		User user = userDetailsService.getUserById(CommonUtil.getLongValofObject(userIdStr));
 		if (user != null) {
 			String email = user.getEmail();
-			OtpDTO otp = otpService.sendOTP(user.getUserId(), user.getEmail());
+			OtpDTO otp = otpService.sendOTP(user.getUserId(), user.getEmail(),CommonConstants.FLOW_TYPE_REGISTRATION);
 			if (otp != null) {
 				respObj.put("message", "OTP sent to above emailId");
 				respObj.put("verificationId", otp.getId());

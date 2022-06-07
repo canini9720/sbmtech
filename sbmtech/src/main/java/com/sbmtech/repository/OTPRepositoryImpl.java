@@ -8,6 +8,7 @@ import javax.persistence.StoredProcedureQuery;
 
 import org.springframework.stereotype.Repository;
 
+import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.model.Otp;
@@ -52,9 +53,10 @@ public class OTPRepositoryImpl extends JdbcCommonDao implements OTPRespositoryCu
 		
 		qry.setParameter("p_id",verificationId)
 			.setParameter("p_user_otp", otpCode);
-		Integer row = qry.executeUpdate();
-
-		if(row != null  && CommonUtil.getBooleanValofObject(row)){
+		
+		 qry.execute();
+		Integer result=(Integer)qry.getOutputParameterValue("p_result");
+		if(result!=null && result==CommonConstants.INT_ONE){
 			return true;
 		}
 		return false;

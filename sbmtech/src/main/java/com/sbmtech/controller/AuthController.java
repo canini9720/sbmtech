@@ -9,8 +9,10 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,12 +25,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.RefreshToken;
 import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.request.LoginRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
@@ -44,6 +49,7 @@ import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.EmailService;
+import com.sbmtech.service.impl.AuthServiceUtil;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -109,6 +115,8 @@ public class AuthController {
 	        .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
 	            "Refresh token is not in database!"));
 	  }
+	  
+	  
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -175,10 +183,28 @@ public class AuthController {
 		user.setVerified(false);
 		User dbUser=userRepository.save(user);
 		SignupResponse resp=new SignupResponse(CommonConstants.SUCCESS_CODE);
-		//resp.setResponseCode(CommonConstants.SUCCESS_CODE);
-		//resp.setResponseStatus(CommonConstants.SUCCESS_DESC);
 		resp.setResponseDesc("Proceed validate OTP to complete Registration Process");
 		resp.setUserId(CommonUtil.encrypt(CommonUtil.getStringValofObject(dbUser.getUserId()),secretKey));
 		return ResponseEntity.ok(resp);
+	}
+	
+	
+	@PostMapping(value="verifyUser", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	public String verifyUser(@RequestBody VerifyUserRequest forgotRequest)throws Exception {
+		forgotRequest = AuthServiceUtil.validateForgotPwd(forgotRequest);
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		OtpDTO otp= userDetailsService.forgotPwd(forgotRequest);
+		if(otp!=null) {
+			respObj.put("message", "OTP sent to above emailId");
+			respObj.put("verificationId", otp.getId());
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		}else{
+			respObj.put("message", "User is not Found");
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		return gson.toJson(respObj);
 	}
 }

@@ -39,6 +39,7 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 	private static final Logger loggerBRE = Logger.getLogger(CommonConstants.LOGGER_SERVICES_BRE);
 	
 	@Override
+	@ResponseBody
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex,
 			Object body, HttpHeaders headers, HttpStatus status,
 			WebRequest request) {
@@ -50,8 +51,15 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 		
 		 
 		String errorMsg = getApplicationErrorMessage(ex);
-		
-		ResponseEntity<Object> responseEntity =  super.handleExceptionInternal(ex, errorMsg, headers, getHttpStatus(ex), request);
+		JSONParser parser = new JSONParser();
+		JSONObject json=null;
+		try {
+			json = (JSONObject) parser.parse(errorMsg);
+			System.out.println(json);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} 
+		ResponseEntity<Object> responseEntity =  super.handleExceptionInternal(ex, json, headers, getHttpStatus(ex), request);
 		
 		return responseEntity;
 	}
