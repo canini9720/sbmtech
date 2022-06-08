@@ -38,7 +38,7 @@ import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonBeanUtil;
 import com.sbmtech.common.util.MailProperties;
 import com.sbmtech.dto.EmailAttachmentDTO;
-import com.sbmtech.dto.NotificationEmailSenderDTO;
+import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.service.EmailService;
 
 @Service
@@ -86,7 +86,7 @@ public class EmailServiceImpl implements EmailService{
 	
 	
 	
-	private void sendEmailByGmail(NotificationEmailSenderDTO dto) throws MessagingException{
+	private void sendEmailByGmail(NotifEmailDTO dto) throws MessagingException{
 		/*
 		Session gmailSession = Session.getInstance(properties, new javax.mail.Authenticator() {
 
@@ -226,7 +226,7 @@ public class EmailServiceImpl implements EmailService{
 	// *** END CHANGE
 
 	    }
-	public boolean sendEmailWithMultiAttachments(NotificationEmailSenderDTO dto){
+	public boolean sendEmailWithMultiAttachments(NotifEmailDTO dto){
 		
 		boolean isEmailSent = false;
 		
@@ -252,7 +252,7 @@ public class EmailServiceImpl implements EmailService{
 		return isEmailSent;
 	}
 	
-	public boolean sendEmail(NotificationEmailSenderDTO dto) {
+	public boolean sendEmail(NotifEmailDTO dto) {
 		boolean isEmailSent = false;
 		if(dto.getEmailTo() != null && !dto.getEmailTo().isEmpty()){
 			try{

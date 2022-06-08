@@ -2,7 +2,7 @@ package com.sbmtech.dto;
 
 import java.util.List;
 
-public class NotificationEmailSenderDTO {
+public class NotifEmailDTO {
 	
 	private String emailTo;
 	private String emailCC;
@@ -16,6 +16,8 @@ public class NotificationEmailSenderDTO {
 	private byte[] attachmentExcelObj;
 	private String type;
 	private Long referenceNo;
+	private String customerName;
+	private Long otpCode;
 	
 	private List<MultipleAttachmentsEmailDTO> multipleAttachmentsEmailDTO;
 	
@@ -105,6 +107,18 @@ public class NotificationEmailSenderDTO {
 	}
 	public void setEmailBCC(String emailBCC) {
 		this.emailBCC = emailBCC;
+	}
+	public String getCustomerName() {
+		return customerName;
+	}
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+	public Long getOtpCode() {
+		return otpCode;
+	}
+	public void setOtpCode(Long otpCode) {
+		this.otpCode = otpCode;
 	}
 	
 	

@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.common.util.OTPGenerator;
-import com.sbmtech.dto.NotificationEmailSenderDTO;
+import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.repository.OTPRepository;
 import com.sbmtech.service.EmailService;
+import com.sbmtech.service.NotificationService;
 import com.sbmtech.service.OTPService;
 
 @Service
@@ -28,6 +28,9 @@ public class OTPServiceImpl implements OTPService {
 	@Autowired
 	EmailService emailService;
 	
+	@Autowired
+	NotificationService notificationService;
+	
 	
 	
 
@@ -36,13 +39,14 @@ public class OTPServiceImpl implements OTPService {
 		Long smsCode=OTPGenerator.getCode();
 		Optional<OtpDTO> otp=otpRepository.saveOtp(userId, CommonUtil.getIntValofObject(smsCode),  email,flowType);
 		
-		NotificationEmailSenderDTO dto=new NotificationEmailSenderDTO();
+		NotifEmailDTO dto=new NotifEmailDTO();
 		dto.setEmailTo("ashrafsnj@gmail.com");
 		dto.setSubject("OTP for verfification");
-		dto.setEmailBody("OTP for verification  "+smsCode);
-		//emailService.testEmail("ashrafsnj@gmail.com", "test from conif2", "body");
-		//emailService.sendPlainTextEmail("subject","body");
-		emailService.sendEmailWithMultiAttachments(dto)	;
+		dto.setOtpCode(smsCode);
+		dto.setCustomerName(email);
+		
+		notificationService.sendOTPEmail(dto);
+		
 		return otp.get();
 
 	}

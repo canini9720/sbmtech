@@ -152,9 +152,8 @@ public class AuthController {
 		strRoles.forEach(role -> {
 				switch (role) {
 				case "admin":
-					Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-					roles.add(adminRole);
+					List<Role> adminRole = roleRepository.findAll();
+					roles.addAll(adminRole);
 					break;
 				case "member":
 					Role memRole = roleRepository.findByName(ERole.ROLE_MEMBER)
