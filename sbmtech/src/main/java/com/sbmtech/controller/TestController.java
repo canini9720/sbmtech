@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sbmtech.common.constant.CommonConstants;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/test")
@@ -19,11 +22,14 @@ public class TestController {
 		return "Public Content.";
 	}
 	
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	@GetMapping("/member")
 	@PreAuthorize("hasRole('MEMBER')  or hasRole('ADMIN')")
 	public String userAccess() {
 		return "User Content.";
 	}
+	
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	@GetMapping("/group")
 	@PreAuthorize("hasRole('GROUP')  or hasRole('ADMIN')")
 	public String groupAccess() {
