@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.sbmtech</groupId>
-	<artifactId>sbmtech</artifactId>
+	<artifactId>selfservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>sbmtech-jwt</name>
+	<name>sbmtech</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>11</java.version>
@@ -114,17 +114,26 @@
 			<artifactId>commons-codec</artifactId>
 			<version>1.15</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
 			<artifactId>velocity-engine-core</artifactId>
 			<version>2.3</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.7</version>
+		</dependency>
 	</dependencies>
 
 	<build>
+		<finalName>selfhelp</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

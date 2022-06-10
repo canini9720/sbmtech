@@ -40,6 +40,8 @@ public class Otp implements Serializable {
 	@Column(name="flow_type")
 	private String flowType;
 	
+	@Column(name="email")
+	private String email;
 	
 	
 	

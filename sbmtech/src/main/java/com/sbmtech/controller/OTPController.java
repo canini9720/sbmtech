@@ -15,6 +15,9 @@ import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.OtpRequest;
+import com.sbmtech.payload.request.ValidateOtpRequest;
+import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.service.OTPService;
 import com.sbmtech.service.impl.OTPServiceImplUtil;
@@ -34,10 +37,10 @@ public class OTPController {
 	CustomeUserDetailsService userDetailsService;
 
 	@PostMapping(value="sendOTP", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	public String sendOTP(@RequestBody String request) throws Exception {
+	public String sendOTP(@RequestBody OtpRequest otpRequest) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		String userIdStr = CommonUtil.decrypt(CommonUtil.getStringValFromJSONString(request, "userId"), secretKey);
+		String userIdStr = CommonUtil.decrypt(otpRequest.getUserId(), secretKey);
 		User user = userDetailsService.getUserById(CommonUtil.getLongValofObject(userIdStr));
 		if (user != null) {
 			String email = user.getEmail();
@@ -58,11 +61,11 @@ public class OTPController {
 	}
 
 	@PostMapping(value="validateOTP", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	public String validateOTP(@RequestBody String request) throws Exception {
+	public String validateOTP(@RequestBody ValidateOtpRequest otpRequest) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		Long verificationId=CommonUtil.getLongValFromJSONString(request, "verificationId");
-		Integer otpCode=CommonUtil.getIntValFromJSONString(request, "userOtp");
+		Long verificationId=otpRequest.getVerificationId();
+		Integer otpCode=otpRequest.getUserOtp();
 		OTPServiceImplUtil.validateRequest(verificationId, otpCode);
 		if(otpService.validateOTP(verificationId,otpCode)) {
 			respObj.put("message", "OTP validation is Success");
