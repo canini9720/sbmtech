@@ -11,6 +11,7 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.annotation.PostConstruct;
+import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -58,6 +59,16 @@ public class EmailServiceImpl implements EmailService{
 	@Autowired
 	private MailProperties mailProperties;
 	
+	private String gmail_OR_domain="";
+	private String fromMailDomain="";
+	private String fromMailGmail="";
+	private String gMailAuth="";
+	private String gMailHost="";
+	private String gMailPort="";
+	private String gMailStartTls="";
+	private String gEmailUsername="";
+	private String gEmailPwd="";
+	
 	private String mailAuth="";
 	private String mailHost="";
 	private String mailPort="";
@@ -65,16 +76,27 @@ public class EmailServiceImpl implements EmailService{
 	private String emailUsername="";
 	private String emailPwd="";
 	
+	
 	@PostConstruct
 	public void initialize() {
 		
-		
+		gmail_OR_domain = AppSystemPropImpl.props.get("gmail.OR.domain");
+		fromMailDomain = AppSystemPropImpl.props.get("from.mail.id");
+		fromMailGmail = AppSystemPropImpl.props.get("from.gmail.id");
+		mailAuth = AppSystemPropImpl.props.get("email.smtp.auth");
 		mailAuth = AppSystemPropImpl.props.get("email.smtp.auth");
 		mailHost = AppSystemPropImpl.props.get("mail.smtp.host");
 		mailPort = AppSystemPropImpl.props.get("email.port");
 		mailStartTls= AppSystemPropImpl.props.get("email.smtp.starttls");
 		emailUsername = AppSystemPropImpl.props.get("email.username");
 		emailPwd = AppSystemPropImpl.props.get("email.password");
+		
+		gMailAuth = AppSystemPropImpl.props.get("gemail.smtp.auth");
+		gMailHost = AppSystemPropImpl.props.get("gmail.smtp.host");
+		gMailPort = AppSystemPropImpl.props.get("gemail.port");
+		gMailStartTls= AppSystemPropImpl.props.get("gemail.smtp.starttls");
+		gEmailUsername = AppSystemPropImpl.props.get("gemail.username");
+		gEmailPwd = AppSystemPropImpl.props.get("gemail.password");
 	}
 	 /*
 	 @PostConstruct
@@ -86,20 +108,11 @@ public class EmailServiceImpl implements EmailService{
 	
 	
 	
-	private void sendEmailByGmail(NotifEmailDTO dto) throws MessagingException{
-		/*
-		Session gmailSession = Session.getInstance(properties, new javax.mail.Authenticator() {
-
-            protected PasswordAuthentication getPasswordAuthentication() {
-
-                return new PasswordAuthentication(mailProperties.getUsername(), mailProperties.getPassword());
-
-            }
-
-        });
-		MimeMessage message = new MimeMessage(gmailSession);*/
-		MimeMessage message = new MimeMessage(getGmailSession());
-		message.setFrom(new InternetAddress("hasan234abu@gmail.com"));
+	private void sendEmail(NotifEmailDTO dto) throws Exception{
+		Boolean gmailOrDomain=(gmail_OR_domain.equalsIgnoreCase("gmail"))?true:false;
+		String fromEmail=(gmailOrDomain)?fromMailGmail:fromMailDomain;
+		MimeMessage message = new MimeMessage(getEmailSession());
+		message.setFrom(new InternetAddress(fromEmail,"NoReply"));
 		message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(dto.getEmailTo()));
 		message.setSubject(dto.getSubject(),"UTF-8");
 		message.setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -159,33 +172,42 @@ public class EmailServiceImpl implements EmailService{
         
 		Transport.send(message);
 	}
-	public Session getGmailSession(){
-		
+	public Session getEmailSession(){
 		Properties props = new Properties();
-		
-		boolean auth = Boolean.parseBoolean(mailAuth.trim());
-		
 		Session session = null;
-		
-		if(auth){
+		Boolean gmailOrDomain=(gmail_OR_domain.equalsIgnoreCase("gmail"))?true:false;
+		if(gmailOrDomain) {
+			boolean auth = Boolean.parseBoolean(gMailAuth.trim());
+			if(auth){
+				props.put("mail.smtp.host", gMailHost);
+				props.put("mail.smtp.port", gMailPort);
+				props.put("mail.smtp.auth", gMailAuth);
+				props.put("mail.smtp.starttls.enable", gMailAuth);
+				session = Session.getInstance(props,
+					new javax.mail.Authenticator() {
+						protected PasswordAuthentication getPasswordAuthentication() {
+							return new PasswordAuthentication(gEmailUsername,gEmailPwd);
+						}
+					});
+			}else{
+				props.put("mail.smtp.host", gMailHost);
+				props.put("mail.smtp.auth", gMailAuth);
+				session = Session.getInstance(props);
+			}
+		}else {
+			props.put("mail.smtp.host", mailHost); //SMTP Host
+			props.put("mail.smtp.socketFactory.port", mailPort); //SSL Port
+			props.put("mail.smtp.socketFactory.class",mailStartTls); //SSL Factory Class
+			props.put("mail.smtp.auth",mailAuth); //Enabling SMTP Authentication
+			props.put("mail.smtp.port", mailPort); //SMTP Port
+			Authenticator auth = new Authenticator() {
+				//override the getPasswordAuthentication method
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(emailUsername, emailPwd);
+				}
+			};
 			
-			props.put("mail.smtp.host", mailHost);
-			props.put("mail.smtp.port", mailPort);
-			props.put("mail.smtp.auth", mailAuth);
-			//props.put("mail.smtp.ssl.enable", mailAuth);
-			props.put("mail.smtp.starttls.enable", mailAuth);
-			
-			session = Session.getInstance(props,
-				new javax.mail.Authenticator() {
-					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(emailUsername,emailPwd);
-					}
-				});
-		}else{
-		
-			props.put("mail.smtp.host", mailHost);
-			props.put("mail.smtp.auth", mailAuth);
-			session = Session.getInstance(props);
+			session = Session.getDefaultInstance(props, auth);
 		}
 		
 		return session;
@@ -235,7 +257,7 @@ public class EmailServiceImpl implements EmailService{
 			try{
 				
 				//sendEmailByGmail(dto.getEmailTo(), dto.getSubject(), dto.getEmailBody(), dto.getMultipleAttachList(),dto.getType());
-				sendEmailByGmail(dto);
+				sendEmail(dto);
 				isEmailSent = true;
 				
 			}catch(Exception ex){
@@ -252,11 +274,11 @@ public class EmailServiceImpl implements EmailService{
 		return isEmailSent;
 	}
 	
-	public boolean sendEmail(NotifEmailDTO dto) {
+	public boolean sendEmailNotification(NotifEmailDTO dto) {
 		boolean isEmailSent = false;
 		if(dto.getEmailTo() != null && !dto.getEmailTo().isEmpty()){
 			try{
-				sendEmailByGmail(dto);
+				sendEmail(dto);
 				isEmailSent = true;
 			}catch(Exception ex){
 				
