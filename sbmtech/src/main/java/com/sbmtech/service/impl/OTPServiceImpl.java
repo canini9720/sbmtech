@@ -4,10 +4,12 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
+import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.common.util.OTPGenerator;
 import com.sbmtech.dto.NotifEmailDTO;
@@ -21,6 +23,8 @@ import com.sbmtech.service.OTPService;
 @Transactional
 @DependsOn("AppSystemProp")
 public class OTPServiceImpl implements OTPService {
+	
+	private static final Logger errorLogger = Logger.getLogger(CommonConstants.LOGGER_SERVICES_ERROR);
 	
 	@Autowired
 	OTPRepository otpRepository;
@@ -45,8 +49,13 @@ public class OTPServiceImpl implements OTPService {
 		dto.setOtpCode(smsCode);
 		dto.setCustomerName(email);
 		
-		notificationService.sendOTPEmail(dto);
-		
+		new  Thread(()->{
+			try {
+				notificationService.sendOTPEmail(dto);
+			} catch (Exception e) {
+				errorLogger.error("SERVICE_SEND_OTP_EXCEPTION : "+email, e);
+			}
+		}).start();
 		return otp.get();
 
 	}
