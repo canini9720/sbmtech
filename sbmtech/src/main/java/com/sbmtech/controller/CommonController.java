@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +20,9 @@ import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.payload.request.FileRequest;
 import com.sbmtech.service.CommonService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/common")
@@ -28,8 +32,9 @@ public class CommonController {
 	CommonService commonService;
 	
 	
-	@RequestMapping(value="/saveAttachmentCloud", consumes=MediaType.MULTIPART_FORM_DATA_VALUE, produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PostMapping(value="/saveAttachmentCloud", consumes=MediaType.MULTIPART_FORM_DATA_VALUE, produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String saveAttachmentCloud(@RequestParam("attachment") MultipartFile file, 
 			@RequestParam(name = "userId") Long userId,
 			@RequestParam(name = "docTypeId") Integer docTypeId) throws Exception{
@@ -43,9 +48,10 @@ public class CommonController {
 	}
 	
 	
-	@RequestMapping(value="/getUserAttachmentCloud",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PostMapping(value="/getUserAttachmentCloud",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
-	public String saveAttachmentCloud(@RequestBody FileRequest fileRequest) throws Exception{
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String getUserAttachmentCloud(@RequestBody FileRequest fileRequest) throws Exception{
 		
 		List<FileItemDTO> listAllFiles = commonService.getAllFileByUserId( fileRequest.getUserId());
 		

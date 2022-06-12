@@ -44,7 +44,7 @@ public class OTPServiceImpl implements OTPService {
 		Optional<OtpDTO> otp=otpRepository.saveOtp(userId, CommonUtil.getIntValofObject(smsCode),  email,flowType);
 		
 		NotifEmailDTO dto=new NotifEmailDTO();
-		dto.setEmailTo("ashrafsnj@gmail.com");
+		dto.setEmailTo(email);
 		dto.setSubject("OTP for verfification");
 		dto.setOtpCode(smsCode);
 		dto.setCustomerName(email);
