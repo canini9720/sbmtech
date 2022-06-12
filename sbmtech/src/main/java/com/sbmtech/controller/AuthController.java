@@ -30,17 +30,19 @@ import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.model.ERole;
+import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.RefreshToken;
 import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
-import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.request.LoginRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
+import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonRespone;
 import com.sbmtech.payload.response.JwtResponse;
 import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
+import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.security.jwt.JwtUtils;
@@ -48,8 +50,10 @@ import com.sbmtech.security.jwt.exception.TokenRefreshException;
 import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.security.services.UserDetailsImpl;
+import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
 import com.sbmtech.service.impl.AuthServiceUtil;
+import com.sbmtech.service.impl.CommonServiceImpl;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -67,6 +71,9 @@ public class AuthController {
 	UserRepository userRepository;
 	
 	@Autowired
+	GDriveUserRepository gdriveRepository;
+	
+	@Autowired
 	RoleRepository roleRepository;
 	
 	@Autowired
@@ -77,6 +84,9 @@ public class AuthController {
 	
 	@Autowired
 	EmailService emailService;
+	
+	@Autowired
+	CommonService commonService;
 	
 	@Autowired
 	CustomeUserDetailsService userDetailsService;
@@ -181,6 +191,15 @@ public class AuthController {
 		user.setEnabled(true);
 		user.setVerified(false);
 		User dbUser=userRepository.save(user);
+		if(dbUser!=null) {
+			String parentId=commonService.createUserFolder(String.valueOf(dbUser.getUserId()));
+			GDriveUser gdriveUser=new GDriveUser();
+			gdriveUser.setUserId(dbUser.getUserId());;
+			gdriveUser.setParentId(parentId);
+			gdriveRepository.save(gdriveUser);
+			
+			
+		}
 		SignupResponse resp=new SignupResponse(CommonConstants.SUCCESS_CODE);
 		resp.setResponseDesc("Proceed validate OTP to complete Registration Process");
 		resp.setUserId(CommonUtil.encrypt(CommonUtil.getStringValofObject(dbUser.getUserId()),secretKey));
