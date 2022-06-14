@@ -175,7 +175,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>selfhelp</finalName>
+		<finalName>selfservice</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

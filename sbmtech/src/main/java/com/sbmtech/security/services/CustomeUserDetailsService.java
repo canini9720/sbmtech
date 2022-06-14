@@ -11,6 +11,7 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public User getUserById(Long userId) throws Exception;
 	public void isVerified(UserDetailsImpl userDetails ) throws Exception ;
 	public OtpDTO forgotPwd(VerifyUserRequest forgotRequest ) throws Exception ;
+	public boolean isVerifiedByEmail(String email,Boolean verified) throws Exception ;
 	
 	
 }

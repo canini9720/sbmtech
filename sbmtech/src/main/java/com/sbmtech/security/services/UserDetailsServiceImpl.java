@@ -1,8 +1,8 @@
 package com.sbmtech.security.services;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,6 @@ import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.VerifyUserRequest;
-import com.sbmtech.payload.response.CommonRespone;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.OTPService;
 @Service
@@ -63,15 +62,22 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			user = userRepository.findByUsername(forgotRequest.getUsername());
 		}
 		if((forgotRequest.getType()==CommonConstants.INT_TWO) ) {
-			if(!userRepository.existsByEmail(forgotRequest.getEmail())) {
+			user=userRepository.getUserByEmailAndVerified(forgotRequest.getEmail(),true);
+			if(!user.isPresent()) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);
 			}
-			user = userRepository.findByEmail(forgotRequest.getEmail());
 		}
 		otp=otpService.sendOTP(user.get().getUserId(), user.get().getEmail(),CommonConstants.FLOW_TYPE_FORGETPWD);
 		
 		
 		return otp;
 		
+	}
+
+
+	@Override
+	public boolean isVerifiedByEmail(String email,Boolean verified) throws Exception {
+		Optional<User> user= userRepository.getUserByEmailAndVerified(email,verified);
+		return user.isPresent();
 	}
 }

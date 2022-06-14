@@ -35,6 +35,7 @@ import com.sbmtech.model.RefreshToken;
 import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.LoginRequest;
+import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -53,7 +54,6 @@ import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
 import com.sbmtech.service.impl.AuthServiceUtil;
-import com.sbmtech.service.impl.CommonServiceImpl;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
@@ -129,12 +129,15 @@ public class AuthController {
 	  
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
+		Boolean isVerified=true;
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
 			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
 			resp.setResponseMessage("Error: Username is already taken!");
 			return ResponseEntity.badRequest().body(resp);
 		}
-		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+		isVerified=userDetailsService.isVerifiedByEmail(signUpRequest.getEmail(),true);
+		
+		if (userRepository.existsByEmail(signUpRequest.getEmail())  && isVerified) {
 			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
 			resp.setResponseMessage("Error: email is already taken");
 			return ResponseEntity.badRequest().body(resp);
@@ -201,6 +204,7 @@ public class AuthController {
 			
 		}
 		SignupResponse resp=new SignupResponse(CommonConstants.SUCCESS_CODE);
+		resp.setResponseMessage(CommonConstants.SUCCESS_DESC);
 		resp.setResponseDesc("Proceed validate OTP to complete Registration Process");
 		resp.setUserId(CommonUtil.encrypt(CommonUtil.getStringValofObject(dbUser.getUserId()),secretKey));
 		return ResponseEntity.ok(resp);
@@ -213,6 +217,27 @@ public class AuthController {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		OtpDTO otp= userDetailsService.forgotPwd(forgotRequest);
+		if(otp!=null) {
+			respObj.put("message", "OTP sent to above emailId");
+			respObj.put("verificationId", otp.getId());
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		}else{
+			respObj.put("message", "User is not Found");
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		return gson.toJson(respObj);
+	}
+	
+	
+	@PostMapping(value="reset", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	public String reset(@RequestBody ResetRequest req)throws Exception {
+		AuthServiceUtil.validateReset(req);
+		 encoder.encode(req.getPassword());
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		OtpDTO otp=null;// userDetailsService.forgotPwd(forgotRequest);
 		if(otp!=null) {
 			respObj.put("message", "OTP sent to above emailId");
 			respObj.put("verificationId", otp.getId());
