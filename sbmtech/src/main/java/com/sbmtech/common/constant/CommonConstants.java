@@ -50,6 +50,9 @@ public class CommonConstants {
     public static final int INT_THREE_COMPNAY = 3;
     public static final String FLOW_TYPE_REGISTRATION="Registration";
     public static final String FLOW_TYPE_FORGETPWD="ForgetPwd";
+    public static final String GET="GET";
+    public static final String SAVE="SAVE";
+    
 }
 
 

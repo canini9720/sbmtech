@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AuthErrorResponse extends CommonRespone{
+public class AuthErrorResponse extends CommonResponse{
 
 	private String message;
 }

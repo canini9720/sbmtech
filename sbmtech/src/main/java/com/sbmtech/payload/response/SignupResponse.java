@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class SignupResponse extends CommonRespone{
+public class SignupResponse extends CommonResponse{
 
 	private String userId;
 	

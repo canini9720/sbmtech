@@ -1,7 +1,9 @@
 package com.sbmtech.security.services;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,12 +13,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
+import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.OtpDTO;
+import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.model.MemberContactDetailEntity;
+import com.sbmtech.model.MemberPersonalDetailEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
+import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.OTPService;
+import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 @Service
 @Transactional
 public class UserDetailsServiceImpl implements CustomeUserDetailsService {
@@ -79,5 +89,73 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	public boolean isVerifiedByEmail(String email,Boolean verified) throws Exception {
 		Optional<User> user= userRepository.getUserByEmailAndVerified(email,verified);
 		return user.isPresent();
+	}
+
+
+	@Override
+	public ProfileResponse getUserPersonalContactById( ProfileRequest profileRequest) throws Exception {
+		ProfileResponse resp=null;
+		CustomeUserDetailsServiceUtil.validatePersonalDetialRequest(profileRequest,CommonConstants.GET);
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		if(userOp.isPresent()) {
+			resp=new ProfileResponse();
+			PersonDetailDTO personalDetailsDTO=new PersonDetailDTO();
+			List<ContactDetailDTO> contactDetailsList=new ArrayList<>();
+			User user=userOp.get();
+		
+			MemberPersonalDetailEntity personalDetail=user.getMemberPersonalDetailEntity();
+			List<MemberContactDetailEntity> contactList=user.getMemeberConactList();
+			
+			for(MemberContactDetailEntity contEnt:contactList) {
+				if(contEnt.getActive()==CommonConstants.INT_ONE) {
+					ContactDetailDTO contactDetailDTO=new ContactDetailDTO();
+					BeanUtils.copyProperties(contEnt, contactDetailDTO);
+					contactDetailsList.add(contactDetailDTO);
+				}
+			}
+			BeanUtils.copyProperties(personalDetail, personalDetailsDTO);
+			resp.setUserId(user.getUserId());
+			resp.setPersonDetails(personalDetailsDTO);
+			resp.setContactDetails(contactDetailsList);
+			
+			
+		}
+		return resp;
+	}
+
+
+	@Override
+	public CommonResponse savePersonalDetails(ProfileRequest profileRequest) throws Exception {
+		CommonResponse resp=null;
+		CustomeUserDetailsServiceUtil.validatePersonalDetialRequest(profileRequest,CommonConstants.SAVE);
+		User userDb=null;
+		PersonDetailDTO personalDetailsDTO=profileRequest.getPersonDetails();
+		List<ContactDetailDTO> contactDetailsList=profileRequest.getContactDetails();
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		List<MemberContactDetailEntity>oldContactEntity= null;
+		if(userOp.isPresent()) {
+			//List<MemberContactDetailEntity> contactEntityList=new ArrayList<>();
+			User user=userOp.get();
+			oldContactEntity=user.getMemeberConactList();
+			oldContactEntity.forEach(o -> o.setActive(CommonConstants.INT_ZERO));
+			personalDetailsDTO.setUserId(profileRequest.getUserId());
+			BeanUtils.copyProperties(personalDetailsDTO, user.getMemberPersonalDetailEntity());
+			user.setMemberPersonalDetailEntity(user.getMemberPersonalDetailEntity());
+			
+			
+			for(ContactDetailDTO contDet:contactDetailsList) {
+				MemberContactDetailEntity contEnt=new MemberContactDetailEntity();
+				BeanUtils.copyProperties(contDet, contEnt);
+				contEnt.setActive(CommonConstants.INT_ONE);
+				contEnt.setUserEntity(user);
+				user.addContactDetail(contEnt);
+			}
+			
+			userDb=userRepository.saveAndFlush(user);
+			if(userDb!=null ) {
+				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+			}
+		}
+		return resp;
 	}
 }

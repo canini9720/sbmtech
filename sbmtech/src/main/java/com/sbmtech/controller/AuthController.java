@@ -39,7 +39,7 @@ import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
-import com.sbmtech.payload.response.CommonRespone;
+import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.JwtResponse;
 import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
@@ -131,14 +131,14 @@ public class AuthController {
 	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
 		Boolean isVerified=true;
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
+			CommonResponse resp=new CommonResponse(CommonConstants.FAILURE_CODE);
 			resp.setResponseMessage("Error: Username is already taken!");
 			return ResponseEntity.badRequest().body(resp);
 		}
 		isVerified=userDetailsService.isVerifiedByEmail(signUpRequest.getEmail(),true);
 		
 		if (userRepository.existsByEmail(signUpRequest.getEmail())  && isVerified) {
-			CommonRespone resp=new CommonRespone(CommonConstants.FAILURE_CODE);
+			CommonResponse resp=new CommonResponse(CommonConstants.FAILURE_CODE);
 			resp.setResponseMessage("Error: email is already taken");
 			return ResponseEntity.badRequest().body(resp);
 		}

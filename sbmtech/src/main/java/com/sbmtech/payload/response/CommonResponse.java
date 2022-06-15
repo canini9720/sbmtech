@@ -7,16 +7,16 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CommonRespone {
+public class CommonResponse {
 	
 	private Integer responseCode;
 	private String responseMessage;
 	private String responseDesc;
-	public CommonRespone(){
+	public CommonResponse(){
 		
 	}
 	
-	public CommonRespone(int responseCode) {
+	public CommonResponse(int responseCode) {
 		super();
 		
 		this.responseCode = responseCode;
