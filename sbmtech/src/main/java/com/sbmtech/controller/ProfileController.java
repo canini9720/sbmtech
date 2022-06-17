@@ -38,7 +38,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/userProfile")
-@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 public class ProfileController {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
@@ -81,7 +80,7 @@ public class ProfileController {
 	
 	@PostMapping(value="getPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')  or hasRole('ADMIN')")
-	
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String getPersonalDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
@@ -102,6 +101,7 @@ public class ProfileController {
 	
 	@PostMapping(value="savePersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')  or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
@@ -118,7 +118,7 @@ public class ProfileController {
 		  return gson.toJson(respObj);
 	  }
 	
-	
+	/*
 	@PostMapping(value="getAllPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('ADMIN')")
 	public String getAllPersonalDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
@@ -136,11 +136,12 @@ public class ProfileController {
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
 		}
 		  return gson.toJson(respObj);
-	 }
+	 }*/
 	
 	
 	@GetMapping(value="getAllMemberDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public String getAllMemberDetails(
             @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
