@@ -139,6 +139,7 @@ public class AuthController {
 			resp.setResponseMessage("Error: Username is already taken!");
 			return ResponseEntity.badRequest().body(resp);
 		}
+		/*
 		isVerified=userDetailsService.isVerifiedByEmail(signUpRequest.getEmail(),true);
 		
 		if (userRepository.existsByEmail(signUpRequest.getEmail())  && isVerified) {
@@ -146,7 +147,7 @@ public class AuthController {
 			resp.setResponseMessage("Error: email is already taken");
 			return ResponseEntity.badRequest().body(resp);
 		}
-		
+		*/
 		// Create new user's account
 		User user = new User(signUpRequest.getUsername(), 
 							 signUpRequest.getFirstname(),
