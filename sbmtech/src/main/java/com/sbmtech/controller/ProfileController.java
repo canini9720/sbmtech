@@ -32,9 +32,13 @@ import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/userProfile")
+@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 public class ProfileController {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
@@ -77,6 +81,7 @@ public class ProfileController {
 	
 	@PostMapping(value="getPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')  or hasRole('ADMIN')")
+	
 	public String getPersonalDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
