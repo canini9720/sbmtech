@@ -1,10 +1,20 @@
 package com.sbmtech.security.services;
+
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,6 +26,7 @@ import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
+import com.sbmtech.dto.UserDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
@@ -23,6 +34,7 @@ import com.sbmtech.model.User;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.OTPService;
@@ -113,7 +125,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					contactDetailsList.add(contactDetailDTO);
 				}
 			}
-			BeanUtils.copyProperties(personalDetail, personalDetailsDTO);
+			if(personalDetail!=null) {
+				BeanUtils.copyProperties(personalDetail, personalDetailsDTO);
+			}
 			resp.setUserId(user.getUserId());
 			resp.setPersonDetails(personalDetailsDTO);
 			resp.setContactDetails(contactDetailsList);
@@ -139,8 +153,10 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			oldContactEntity=user.getMemeberConactList();
 			oldContactEntity.forEach(o -> o.setActive(CommonConstants.INT_ZERO));
 			personalDetailsDTO.setUserId(profileRequest.getUserId());
-			BeanUtils.copyProperties(personalDetailsDTO, user.getMemberPersonalDetailEntity());
-			user.setMemberPersonalDetailEntity(user.getMemberPersonalDetailEntity());
+			
+			MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
+			BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
+			user.setMemberPersonalDetailEntity(personalDetialEntity);
 			
 			
 			for(ContactDetailDTO contDet:contactDetailsList) {
@@ -158,4 +174,66 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return resp;
 	}
+
+
+	@Override
+	public MemberDetailResponse getAllMemberDetails(int pageNo, int pageSize, String sortBy, String sortDir) {
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+		List<UserDetailDTO> userDetailDTO=null;
+		MemberDetailResponse memberDetailResponse=null;
+        // create Pageable instance
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<User> posts = userRepository.findByMemberCategory(CommonConstants.INT_ONE ,pageable);
+
+        // get content for page object
+        List<User> listOfPosts = posts.getContent();
+        
+        userDetailDTO= listOfPosts.stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
+
+        if(userDetailDTO!=null && !userDetailDTO.isEmpty()) {
+	        memberDetailResponse = new MemberDetailResponse();
+	        memberDetailResponse.setUserDetailDTO(userDetailDTO);
+	        memberDetailResponse.setPageNo(posts.getNumber());
+	        memberDetailResponse.setPageSize(posts.getSize());
+	        memberDetailResponse.setTotalElements(posts.getTotalElements());
+	        memberDetailResponse.setTotalPages(posts.getTotalPages());
+	        memberDetailResponse.setLast(posts.isLast());
+        }
+
+        return memberDetailResponse;
+		
+	}
+	
+	// convert Entity into DTO
+    private UserDetailDTO mapToDTO(User user){
+    	UserDetailDTO userDetailDTO = new UserDetailDTO();
+    	BeanUtils.copyProperties(user, userDetailDTO);
+    	
+    	if(user.getMemberPersonalDetailEntity()!=null) {
+    		PersonDetailDTO personDetailDTO=new PersonDetailDTO();
+    		BeanUtils.copyProperties(user.getMemberPersonalDetailEntity(), personDetailDTO);
+    		userDetailDTO.setPersonDetailDTO(personDetailDTO);
+    	}
+    	if(user.getMemeberConactList()!=null) {
+    		List<ContactDetailDTO> asDto = user.getMemeberConactList().stream().filter(Objects::nonNull).map(new Function<MemberContactDetailEntity, ContactDetailDTO>() {
+    		    @Override
+    		    public ContactDetailDTO apply(MemberContactDetailEntity s) {
+    		    	ContactDetailDTO contact=null;
+    		    	if(s.getActive()==CommonConstants.INT_ONE) {
+    		    		contact=new ContactDetailDTO();
+    		    		BeanUtils.copyProperties(s, contact);
+    		    	}
+    		    	return contact;
+    		    }
+    		}).collect(Collectors.toList());
+    		
+    		asDto.removeAll(Collections.singleton(null));
+    		userDetailDTO.setContactDetailDTO(asDto);
+
+    	}
+        return userDetailDTO;
+    }
 }

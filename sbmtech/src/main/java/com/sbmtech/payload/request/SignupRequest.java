@@ -1,7 +1,5 @@
 package com.sbmtech.payload.request;
 
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +14,8 @@ public class SignupRequest {
 	private String lastname;
 	private Integer memberCategory;
 	private String password;
+	private String confirmPassword;
 	private String email;
-	//private Set<String> role;
+
 	
 }

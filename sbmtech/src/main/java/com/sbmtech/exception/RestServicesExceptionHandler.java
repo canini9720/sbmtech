@@ -23,6 +23,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -91,14 +92,29 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 	protected ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
 		
 		loggerInfo.info("<< handleAllExceptions >>");
-		
-		
-		printErrorLogsToLogger(ex, request);
-		
-		
-		String errorMsg = getApplicationErrorMessage(ex);
 		JSONParser parser = new JSONParser();
 		JSONObject json=null;
+		
+		printErrorLogsToLogger(ex, request);
+		if(ex instanceof BadCredentialsException){
+			json=new JSONObject();
+			json.put("responseCode", "0");
+			json.put("responseDesc", "Bad Credential");
+			return new ResponseEntity<Object>(json, HttpStatus.BAD_REQUEST);
+		}else if(ex instanceof AccessDeniedException){
+			json=new JSONObject();
+			json.put("responseCode", "0");
+			json.put("responseDesc", "Access Denied");
+			return new ResponseEntity<Object>(json, HttpStatus.BAD_REQUEST);
+		}else if(ex instanceof DisabledException){
+			json=new JSONObject();
+			json.put("responseCode", "0");
+			json.put("responseDesc", "User Account is Disabled");
+			return new ResponseEntity<Object>(json, HttpStatus.BAD_REQUEST);
+		}
+		
+		String errorMsg = getApplicationErrorMessage(ex);
+		
 		try {
 			json = (JSONObject) parser.parse(errorMsg);
 			System.out.println(json);
@@ -127,7 +143,8 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");
-		}else if(ex instanceof BadCredentialsException){
+		}/*
+		else if(ex instanceof BadCredentialsException){
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");
@@ -135,11 +152,12 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");
-		}else if(ex instanceof DisabledException){
+		}
+		else if(ex instanceof DisabledException){
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");
-		}else if(ex instanceof ServletRequestBindingException){
+		}*/else if(ex instanceof ServletRequestBindingException){
 			errorMsg = ex.getMessage();
 			
 			errorMsg = errorMsg.replace("\'", "");

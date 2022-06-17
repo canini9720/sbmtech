@@ -12,7 +12,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +43,7 @@ import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.JwtResponse;
+import com.sbmtech.payload.response.MessageResponse;
 import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
 import com.sbmtech.repository.GDriveUserRepository;
@@ -130,6 +133,7 @@ public class AuthController {
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
 		Boolean isVerified=true;
+		AuthServiceUtil.validateSignUp(signUpRequest);
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {
 			CommonResponse resp=new CommonResponse(CommonConstants.FAILURE_CODE);
 			resp.setResponseMessage("Error: Username is already taken!");
@@ -250,4 +254,11 @@ public class AuthController {
 		}
 		return gson.toJson(respObj);
 	}
+	/*
+	@PostMapping("/signout")
+	public ResponseEntity<?> logoutUser() {
+	    ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+	    return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+	        .body(new MessageResponse("You've been signed out!"));
+	}*/
 }

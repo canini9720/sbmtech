@@ -7,6 +7,7 @@ import com.sbmtech.model.User;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
 
 public interface CustomeUserDetailsService extends UserDetailsService {
@@ -18,6 +19,6 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public ProfileResponse getUserPersonalContactById( ProfileRequest profileRequest) throws Exception;
 	public CommonResponse savePersonalDetails( ProfileRequest profileRequest) throws Exception;
 	
-	
+	public MemberDetailResponse getAllMemberDetails(int pageNo, int pageSize, String sortBy, String sortDir);
 	
 }

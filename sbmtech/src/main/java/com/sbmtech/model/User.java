@@ -67,7 +67,7 @@ public class User {
 	private Set<Role> roles = new HashSet<>();
 	
 	
-	@OneToOne(fetch=FetchType.LAZY)
+	@OneToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
 	@JoinColumn(name="id", insertable=false, updatable=false)
 	private MemberPersonalDetailEntity memberPersonalDetailEntity;
 	
