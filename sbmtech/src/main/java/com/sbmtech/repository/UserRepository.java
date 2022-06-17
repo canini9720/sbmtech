@@ -18,4 +18,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	Optional<User> getUserByEmailAndVerified(String email,Boolean verified);
 	Page<User> findByMemberCategory(int intOne, Pageable pageable);
+	Page<User> findByMemberCategoryAndVerified(int intOne,boolean  verified, Pageable pageable);
 }

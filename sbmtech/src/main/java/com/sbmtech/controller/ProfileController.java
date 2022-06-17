@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.PersonDetailDTO;
+import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -76,8 +79,68 @@ public class ProfileController {
 	JwtUtils jwtUtils;
 	
 	
+	@PostMapping(value="getMemberRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole('MEMBER')   or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String getUserRegistrationDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		UserRegistrationDetailDTO resp = userDetailsService.getMemberRegistrationDetailsById(profileRequest);
+		if (resp != null) {
+			resp.setVerified(null);
+			resp.setEnabled(null);
+			respObj.put("memberRegistrationDetailDTO", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
 	
+	@PostMapping(value="getMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole('MEMBER')  or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getMemberPersonalDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		PersonDetailDTO resp = userDetailsService. getMemberPersonalDetailsById(profileRequest);
+		if (resp != null) {
+			respObj.put("memberPersonDetailDTO", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
 	
+	@PostMapping(value="getMemberContactlDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole('MEMBER')  or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getMemberContactlDetails(@RequestBody ProfileRequest profileRequest) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		ContactDetailDTO resp = userDetailsService. getMemberContactDetailsById(profileRequest);
+		if (resp != null) {
+			respObj.put("memberContactDetailDTO", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	/*
 	@PostMapping(value="getPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')  or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
@@ -97,16 +160,16 @@ public class ProfileController {
 		}
 		  return gson.toJson(respObj);
 	 }
+	*/
 	
-	
-	@PostMapping(value="savePersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')  or hasRole('ADMIN')")
+	@PostMapping(value="saveMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole('MEMBER')    or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		
-		CommonResponse resp = userDetailsService.savePersonalDetails(profileRequest);
+		CommonResponse resp = userDetailsService.saveMemberPersonalDetails(profileRequest);
 		if (resp != null) {
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
@@ -118,6 +181,25 @@ public class ProfileController {
 		  return gson.toJson(respObj);
 	  }
 	
+	
+	@PostMapping(value="saveMemberContactDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole('MEMBER')    or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveMemberContactDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp = userDetailsService.saveMemberContactDetails(profileRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	  }
 	/*
 	@PostMapping(value="getAllPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('ADMIN')")

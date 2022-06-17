@@ -20,9 +20,10 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
 		logger.error("Unauthorized error: {}", authException.getMessage());
 		//response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
 		response.setContentType("application/json;charset=UTF-8");
+		response.setStatus(403);
 		response.getWriter().write("Access Denied... Forbidden");
-		/*response.setStatus(403);
-		response.getWriter().write(JsonBuilder //my util class for creating json strings
+		//
+		/*response.getWriter().write(JsonBuilder //my util class for creating json strings
 	                .put("status", 403)
 	                .put("message", "Access denied")
 	                .build());*/
