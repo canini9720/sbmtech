@@ -14,7 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,6 +41,7 @@ import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
+import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.OTPService;
@@ -52,6 +52,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	MemberContactRepository mcRepository;
 	
 	@Autowired
 	OTPService otpService;
@@ -348,7 +351,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			User user=userOp.get();
 			oldContactEntity=user.getMemeberConactList();
 			if(oldContactEntity!=null) {
-				oldContactEntity.forEach(o -> o.setActive(CommonConstants.INT_ZERO));
+				oldContactEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+				});
 			}
 			//personalDetailsDTO.setUserId(profileRequest.getUserId());
 			
@@ -364,14 +369,25 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 				contEnt.setActive(CommonConstants.INT_ONE);
 				contEnt.setUserEntity(user);
 				user.addContactDetail(contEnt);
-				user.setCreatedDate(new Date());
+				contEnt.setCreatedDate(new Date());
 			}
 			
 			userDb=userRepository.saveAndFlush(user);
 			if(userDb!=null ) {
+				List<Long> oldContIds = oldContactEntity.stream().filter(cont->cont.getActive()==0)
+                        .map(MemberContactDetailEntity::getContId).collect(Collectors.toList());
+				deleteMemberContactDetails(oldContIds);
 				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+				
 			}
 		}
 		return resp;
+	}
+
+
+	@Override
+	public void deleteMemberContactDetails(List<Long> oldContIds) throws Exception {
+		mcRepository.deleteMemberContactDetailEntityByContIds(oldContIds);
+		
 	}
 }

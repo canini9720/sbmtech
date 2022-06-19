@@ -294,28 +294,25 @@ public class CommonServiceImpl implements CommonService {
 		String userFolderId = gDriveUser.getParentId();
 		File gFile=getFileByName(userFolderId,String.valueOf(docTypeId));
 		List<FileItemDTO> listFileItem=new ArrayList<FileItemDTO>();
-		//for (File file : listGfiles) {
-			FileItemDTO item = new FileItemDTO();
-			item.setId(gFile.getId());
-			item.setName(gFile.getName());
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		FileItemDTO item = new FileItemDTO();
+		item.setId(gFile.getId());
+		item.setName(gFile.getName());
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			
-			driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
+		driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
 
-			java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
-			String base64 =  new String(encoder.encode(outputStream.toByteArray()));
-			item.setBase64String(base64);
-			
-			for(DocTypeMaster docType:allDocType) {
-				if(gFile.getName().equals(String.valueOf(docType.getId()))) {
-					item.setDocTypeId(docType.getId());
-					item.setDocTypeDesc(docType.getFileDesc());
-					break;
-				}
+		java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+		String base64 =  new String(encoder.encode(outputStream.toByteArray()));
+		item.setBase64String(base64);
+		
+		for(DocTypeMaster docType:allDocType) {
+			if(gFile.getName().equals(String.valueOf(docType.getId()))) {
+				item.setDocTypeId(docType.getId());
+				item.setDocTypeDesc(docType.getFileDesc());
+				break;
 			}
-			listFileItem.add(item);
-			
-		//}
+		}
+		listFileItem.add(item);
 		return listFileItem.get(0);	
 	}
 

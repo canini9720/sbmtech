@@ -30,9 +30,6 @@ public class MemberContactDetailEntity implements Serializable {
 	private Long contId;
 	
 	
-	//@Column(name="user_id")
-	//private Long userId;
-	
 	@Column(name="contact_type")
 	private Integer contactType;
 		
@@ -100,7 +97,6 @@ public class MemberContactDetailEntity implements Serializable {
 	
 	@ManyToOne
 	@JoinColumn(name="user_id")
-	//@JoinColumn(name="user_id")
 	private User userEntity;
 	
 	

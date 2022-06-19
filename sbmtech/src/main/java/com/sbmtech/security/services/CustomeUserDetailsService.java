@@ -1,5 +1,7 @@
 package com.sbmtech.security.services;
 
+import java.util.List;
+
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.sbmtech.dto.ContactDetailDTO;
@@ -29,5 +31,7 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	
 	public CommonResponse saveMemberPersonalDetails( ProfileRequest profileRequest) throws Exception;
 	public CommonResponse saveMemberContactDetails( ProfileRequest profileRequest) throws Exception;
+	public void deleteMemberContactDetails(List<Long> ids) throws Exception;
+	
 	
 }
