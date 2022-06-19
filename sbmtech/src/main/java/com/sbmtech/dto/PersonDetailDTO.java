@@ -25,4 +25,5 @@ public class PersonDetailDTO {
 	private Integer son;
 	private Long asserts;
 	private Long annualIncome;
+	private String photo64;
 }

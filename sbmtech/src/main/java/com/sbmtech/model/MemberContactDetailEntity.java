@@ -1,5 +1,6 @@
 package com.sbmtech.model;
 import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -103,7 +104,8 @@ public class MemberContactDetailEntity implements Serializable {
 	private User userEntity;
 	
 	
-	
+	@Column(name="created_date")
+	private Date createdDate;
 	
 	
 	

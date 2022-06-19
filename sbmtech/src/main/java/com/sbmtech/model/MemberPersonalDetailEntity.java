@@ -54,7 +54,8 @@ public class MemberPersonalDetailEntity implements Serializable {
 	@Column(name="ANNUAL_INCOME")
 	private Long annualIncome;
 	
-	
+	@Column(name="created_date")
+	private Date createdDate;
 	
 	
 	

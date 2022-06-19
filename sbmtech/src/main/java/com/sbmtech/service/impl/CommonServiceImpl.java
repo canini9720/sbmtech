@@ -14,6 +14,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -185,7 +186,26 @@ public class CommonServiceImpl implements CommonService {
 		        .execute();
 		  
 		  return result.getFiles();
-		}
+	}
+	
+	public File getFileByName(String parentId,String fileName) throws IOException, GeneralSecurityException {
+		String docTypeId="";
+		  if(parentId == null){
+		     parentId = "root";
+		  }
+		  if(StringUtils.isNotBlank(fileName)) {
+			  docTypeId=fileName;
+		  }
+		  String query = "'" + parentId + "' in parents"+" and name = '"+docTypeId+"'";
+		  FileList result = driveService.files().list()
+		        .setQ(query)
+		        .setPageSize(10)
+		        .setFields("nextPageToken, files(id, name)")
+		        .execute();
+		  
+		  return result.getFiles().get(0);
+	}
+	
 	
 /*	
 	public String getFolderId(String path) throws Exception {
@@ -263,6 +283,40 @@ public class CommonServiceImpl implements CommonService {
 		        .setFields("id")
 		        .execute()
 		        .getId();
+	}
+
+
+
+	@Override
+	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId, Integer docTypeId) throws Exception {
+		List<DocTypeMaster> allDocType=docTypeRepo.findAll();	
+		GDriveUser gDriveUser =gDriveRepo.findById(userId).get();
+		String userFolderId = gDriveUser.getParentId();
+		File gFile=getFileByName(userFolderId,String.valueOf(docTypeId));
+		List<FileItemDTO> listFileItem=new ArrayList<FileItemDTO>();
+		//for (File file : listGfiles) {
+			FileItemDTO item = new FileItemDTO();
+			item.setId(gFile.getId());
+			item.setName(gFile.getName());
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			
+			driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
+
+			java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+			String base64 =  new String(encoder.encode(outputStream.toByteArray()));
+			item.setBase64String(base64);
+			
+			for(DocTypeMaster docType:allDocType) {
+				if(gFile.getName().equals(String.valueOf(docType.getId()))) {
+					item.setDocTypeId(docType.getId());
+					item.setDocTypeDesc(docType.getFileDesc());
+					break;
+				}
+			}
+			listFileItem.add(item);
+			
+		//}
+		return listFileItem.get(0);	
 	}
 
 

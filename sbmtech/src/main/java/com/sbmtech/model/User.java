@@ -1,5 +1,6 @@
 package com.sbmtech.model;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,6 +47,12 @@ public class User {
 	
 	@Column(name = "verified", columnDefinition="BIT")
 	private Boolean verified;
+	
+	@Column(name = "created_date")
+	private Date createdDate;
+	
+	@Column(name = "verified_date")
+	private Date verifiedDate;
 	
 	
 	public User() {
@@ -152,6 +159,12 @@ public class User {
 	}
 	public void setMemeberConactList(List<MemberContactDetailEntity> memeberConactList) {
 		this.memeberConactList = memeberConactList;
+	}
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
 	}
 	
 	

@@ -1,6 +1,7 @@
 package com.sbmtech.controller;
 
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,9 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,7 +42,6 @@ import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.JwtResponse;
-import com.sbmtech.payload.response.MessageResponse;
 import com.sbmtech.payload.response.SignupResponse;
 import com.sbmtech.payload.response.TokenRefreshResponse;
 import com.sbmtech.repository.GDriveUserRepository;
@@ -198,6 +196,7 @@ public class AuthController {
 		user.setRoles(roles);
 		user.setEnabled(true);
 		user.setVerified(false);
+		user.setCreatedDate(new Date());
 		User dbUser=userRepository.save(user);
 		if(dbUser!=null) {
 			String parentId=commonService.createUserFolder(String.valueOf(dbUser.getUserId()));

@@ -238,6 +238,7 @@ public class ProfileController {
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		
 		}else{
+			respObj.put("getAllMemberDetails", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
 		}

@@ -3,15 +3,18 @@ package com.sbmtech.security.services;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,6 +28,7 @@ import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.UserDetailDTO;
@@ -39,6 +43,7 @@ import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.UserRepository;
+import com.sbmtech.service.CommonService;
 import com.sbmtech.service.OTPService;
 import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 @Service
@@ -50,6 +55,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	OTPService otpService;
+	
+	@Autowired
+	CommonService commonService;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -150,7 +158,6 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
 		List<MemberContactDetailEntity>oldContactEntity= null;
 		if(userOp.isPresent()) {
-			//List<MemberContactDetailEntity> contactEntityList=new ArrayList<>();
 			User user=userOp.get();
 			oldContactEntity=user.getMemeberConactList();
 			oldContactEntity.forEach(o -> o.setActive(CommonConstants.INT_ZERO));
@@ -184,19 +191,15 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
                 : Sort.by(sortBy).descending();
 
 		List<UserDetailDTO> userDetailDTO=null;
-		MemberDetailResponse memberDetailResponse=null;
-        // create Pageable instance
+		MemberDetailResponse memberDetailResponse=new MemberDetailResponse();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         Page<User> pageUser = userRepository.findByMemberCategoryAndVerified(CommonConstants.INT_ONE,true ,pageable);
 
-        // get content for page object
         List<User> listOfPosts = pageUser.getContent();
         
         userDetailDTO= listOfPosts.stream().map(post -> mapToDTO(post)).collect(Collectors.toList());
-        userDetailDTO.removeAll(Collections.singleton(null));
         if(userDetailDTO!=null && !userDetailDTO.isEmpty()) {
-	        memberDetailResponse = new MemberDetailResponse();
 	        memberDetailResponse.setUserDetailDTO(userDetailDTO);
 	        memberDetailResponse.setPageNo(pageUser.getNumber());
 	        memberDetailResponse.setPageSize(pageUser.getSize());
@@ -211,9 +214,11 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	// convert Entity into DTO
     private UserDetailDTO mapToDTO(User user){
-    	UserDetailDTO userDetailDTO = null;
+    	UserDetailDTO userDetailDTO =    new UserDetailDTO();
+    	UserRegistrationDetailDTO registrationDTO=new UserRegistrationDetailDTO();
+    	BeanUtils.copyProperties(user, registrationDTO);
+    	userDetailDTO.setUserRegistrationDetailDTO(registrationDTO);
     	if(user.getMemberPersonalDetailEntity()!=null || (user.getMemeberConactList()!=null && !user.getMemeberConactList().isEmpty() ) ) {
-    		userDetailDTO = new UserDetailDTO();
     		BeanUtils.copyProperties(user, userDetailDTO);
     	}
     	
@@ -267,6 +272,10 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			if(personalDetialEntity!=null) {
 				BeanUtils.copyProperties(personalDetialEntity,personDetailDTO);	
 			}
+			FileItemDTO photoDTO=commonService.getFileByUserIdAndDocTypeId(profileRequest.getUserId(), CommonConstants.INT_ONE);
+			if(photoDTO!=null && StringUtils.isNotBlank(photoDTO.getBase64String())) {
+				personDetailDTO.setPhoto64(photoDTO.getBase64String());
+			}
 		}
 		return personDetailDTO;
 	}
@@ -316,6 +325,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
 			BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
 			user.setMemberPersonalDetailEntity(personalDetialEntity);
+			user.setCreatedDate(new Date());
 			userDb=userRepository.saveAndFlush(user);
 			if(userDb!=null ) {
 				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
@@ -354,6 +364,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 				contEnt.setActive(CommonConstants.INT_ONE);
 				contEnt.setUserEntity(user);
 				user.addContactDetail(contEnt);
+				user.setCreatedDate(new Date());
 			}
 			
 			userDb=userRepository.saveAndFlush(user);
