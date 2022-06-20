@@ -43,12 +43,17 @@ public class AuthServiceUtil {
 		return req;
 	}
 	
-	public static void validateReset(ResetRequest req) throws Exception {
+	public static ResetRequest validateReset(ResetRequest req) throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("userId", req.getUserId(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("verificationId", req.getVerificationId(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("otpCode", req.getOtpCode(), true);
+		
 		ExceptionUtil.throwNullOrEmptyValidationException("Password ", req.getPassword(), true);
 		ExceptionUtil.throwNullOrEmptyValidationException("Confirm Password ", req.getConfirmPassword(), true);
 		if(!req.getPassword().equals(req.getConfirmPassword())) {
 			ExceptionUtil.throwException(ExceptionValidationsConstants.PASSWORD_NOT_MATCH, ExceptionUtil.EXCEPTION_VALIDATION);
 		}
+		return req;
 	}
 			
 }

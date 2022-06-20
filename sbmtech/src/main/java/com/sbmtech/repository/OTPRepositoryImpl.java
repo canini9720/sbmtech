@@ -34,10 +34,10 @@ public class OTPRepositoryImpl extends JdbcCommonDao implements OTPRespositoryCu
 		if(lists != null && !lists.isEmpty()){
 			otp=new OtpDTO();
 			Object[] result = (Object[])lists.get(0);
-			otp.setId(CommonUtil.getLongValofObject(result[0]));
+			otp.setVerificationId(CommonUtil.getLongValofObject(result[0]));
 			otp.setUserId(CommonUtil.getLongValofObject(result[1]));
 			otp.setOtpCode(CommonUtil.getIntValofObject(result[2]));
-			otp.setEmail(CommonUtil.getStringValofObject(result[5]));
+			otp.setEmail(CommonUtil.getStringValofObject(result[3]));
 		}
 		Optional<OtpDTO> opt = Optional.ofNullable(otp);	
 		return opt;

@@ -1,18 +1,22 @@
 package com.sbmtech.controller;
 
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,8 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.OtpDTO;
+import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.RefreshToken;
@@ -54,16 +61,18 @@ import com.sbmtech.security.services.RefreshTokenService;
 import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
+import com.sbmtech.service.impl.AppSystemPropImpl;
 import com.sbmtech.service.impl.AuthServiceUtil;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@DependsOn("AppSystemProp")
 public class AuthController {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
 	
-	@Value("${secret.key}")
-	private String secretKey;
+	//@Value("${secret.key}")
+	private static String secretKey;
 	
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -95,20 +104,28 @@ public class AuthController {
 	@Autowired
 	JwtUtils jwtUtils;
 	
+	@PostConstruct
+	public void initialize() throws GeneralSecurityException, IOException {
+		secretKey = AppSystemPropImpl.props.get("json.secretKey");
+	}
+	
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)throws Exception {
 	    Authentication authentication = authenticationManager
 	        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-	    userDetailsService.isVerified(userDetails);
-
+	    
+	    if(!userDetails.isVerified()) {
+			ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
+		}
 	    String jwt = jwtUtils.generateJwtToken(userDetails);
 	    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 	        .collect(Collectors.toList());
-	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
-	        userDetails.getUsername(), roles));
+	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
+	    ProfileCompleteStatusDTO profileCompleteDTO=userDetailsService.getMemberProfileCompletionStatus(userDetails.getUserId());
+	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getUserId(),
+	        userDetails.getUsername(), roles,profileCompleteDTO));
 	  }
 	
 	
@@ -220,10 +237,12 @@ public class AuthController {
 		forgotRequest = AuthServiceUtil.validateForgotPwd(forgotRequest);
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		OtpDTO otp= userDetailsService.forgotPwd(forgotRequest);
+		OtpDTO otp= userDetailsService.verifyUser(forgotRequest);
 		if(otp!=null) {
 			respObj.put("message", "OTP sent to above emailId");
-			respObj.put("verificationId", otp.getId());
+			respObj.put("emailId", CommonUtil.maskEmail(otp.getEmail()));
+			respObj.put("verificationId", otp.getVerificationId());
+			respObj.put("userId", otp.getUserId());
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		}else{
@@ -237,18 +256,18 @@ public class AuthController {
 	
 	@PostMapping(value="reset", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	public String reset(@RequestBody ResetRequest req)throws Exception {
-		AuthServiceUtil.validateReset(req);
-		 encoder.encode(req.getPassword());
+		req=AuthServiceUtil.validateReset(req);
+		
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		OtpDTO otp=null;// userDetailsService.forgotPwd(forgotRequest);
-		if(otp!=null) {
-			respObj.put("message", "OTP sent to above emailId");
-			respObj.put("verificationId", otp.getId());
+		CommonResponse resp=userDetailsService.reset(req, encoder.encode(req.getPassword()));
+		if(resp!=null) {
+			
+			respObj.put("message", "Password successfully modfied");
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		}else{
-			respObj.put("message", "User is not Found");
+			respObj.put("message", "User is not Found / User not requeted for reset");
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
 		}

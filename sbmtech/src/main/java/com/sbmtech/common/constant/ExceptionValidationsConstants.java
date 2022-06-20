@@ -12,4 +12,5 @@ public class ExceptionValidationsConstants {
 	public static final String USERNAME_OR_EMAIL = "2108";
 	public static final String PASSWORD_NOT_MATCH = "2109";
 	public static final String INVALID_MEMBER_CATEGORY = "2110";
+	public static final String INVALID_OTP = "2111";
 }

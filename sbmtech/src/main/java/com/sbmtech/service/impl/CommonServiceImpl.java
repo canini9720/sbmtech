@@ -151,8 +151,8 @@ public class CommonServiceImpl implements CommonService {
 			item.setBase64String(base64);
 			
 			for(DocTypeMaster docType:allDocType) {
-				if(file.getName().equals(String.valueOf(docType.getId()))) {
-					item.setDocTypeId(docType.getId());
+				if(file.getName().equals(String.valueOf(docType.getDocTypeId()))) {
+					item.setDocTypeId(docType.getDocTypeId());
 					item.setDocTypeDesc(docType.getFileDesc());
 					break;
 				}
@@ -202,8 +202,14 @@ public class CommonServiceImpl implements CommonService {
 		        .setPageSize(10)
 		        .setFields("nextPageToken, files(id, name)")
 		        .execute();
-		  
-		  return result.getFiles().get(0);
+
+		  if(result!=null && !result.isEmpty()) {
+			 List<File> listFiles= result.getFiles();
+			 if(listFiles!=null && !listFiles.isEmpty()) {
+				 return listFiles.get(0);
+			 }
+		  }
+		  return null;
 	}
 	
 	
@@ -289,31 +295,33 @@ public class CommonServiceImpl implements CommonService {
 
 	@Override
 	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId, Integer docTypeId) throws Exception {
+		FileItemDTO item=null;
 		List<DocTypeMaster> allDocType=docTypeRepo.findAll();	
 		GDriveUser gDriveUser =gDriveRepo.findById(userId).get();
 		String userFolderId = gDriveUser.getParentId();
 		File gFile=getFileByName(userFolderId,String.valueOf(docTypeId));
-		List<FileItemDTO> listFileItem=new ArrayList<FileItemDTO>();
-		FileItemDTO item = new FileItemDTO();
-		item.setId(gFile.getId());
-		item.setName(gFile.getName());
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		if(gFile!=null) {	
+			item = new FileItemDTO();
+			item.setId(gFile.getId());
+			item.setName(gFile.getName());
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			
-		driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
-
-		java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
-		String base64 =  new String(encoder.encode(outputStream.toByteArray()));
-		item.setBase64String(base64);
-		
-		for(DocTypeMaster docType:allDocType) {
-			if(gFile.getName().equals(String.valueOf(docType.getId()))) {
-				item.setDocTypeId(docType.getId());
-				item.setDocTypeDesc(docType.getFileDesc());
-				break;
+			driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
+			
+	
+			java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+			String base64 =  new String(encoder.encode(outputStream.toByteArray()));
+			item.setBase64String(base64);
+			
+			for(DocTypeMaster docType:allDocType) {
+				if(gFile.getName().equals(String.valueOf(docType.getDocTypeId()))) {
+					item.setDocTypeId(docType.getDocTypeId());
+					item.setDocTypeDesc(docType.getFileDesc());
+					break;
+				}
 			}
 		}
-		listFileItem.add(item);
-		return listFileItem.get(0);	
+		return item;	
 	}
 
 

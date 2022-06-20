@@ -1,8 +1,14 @@
 package com.sbmtech.controller;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
+import javax.annotation.PostConstruct;
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,14 +26,16 @@ import com.sbmtech.payload.request.ValidateOtpRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.service.OTPService;
+import com.sbmtech.service.impl.AppSystemPropImpl;
 import com.sbmtech.service.impl.OTPServiceImplUtil;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
+@DependsOn("AppSystemProp")
 @RestController
 @RequestMapping("/api/otp")
 public class OTPController {
 
-	@Value("${secret.key}")
+	//@Value("${secret.key}")
 	private String secretKey;
 
 	@Autowired
@@ -35,6 +43,11 @@ public class OTPController {
 
 	@Autowired
 	CustomeUserDetailsService userDetailsService;
+	
+	@PostConstruct
+	public void initialize() throws GeneralSecurityException, IOException {
+		secretKey = AppSystemPropImpl.props.get("json.secretKey");
+	}
 
 	@PostMapping(value="sendOTP", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	public String sendOTP(@RequestBody OtpRequest otpRequest) throws Exception {
@@ -43,11 +56,10 @@ public class OTPController {
 		String userIdStr = CommonUtil.decrypt(otpRequest.getUserId(), secretKey);
 		User user = userDetailsService.getUserById(CommonUtil.getLongValofObject(userIdStr));
 		if (user != null) {
-			String email = user.getEmail();
 			OtpDTO otp = otpService.sendOTP(user.getUserId(), user.getEmail(),CommonConstants.FLOW_TYPE_REGISTRATION);
 			if (otp != null) {
 				respObj.put("message", "OTP sent to above emailId");
-				respObj.put("verificationId", otp.getId());
+				respObj.put("verificationId", otp.getVerificationId());
 				respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 				respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 			}

@@ -9,15 +9,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "otp_user")
 @Setter
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class Otp implements Serializable {
 	
 	@Id
@@ -26,7 +26,7 @@ public class Otp implements Serializable {
 	private Long id;
 	
 	@Column(name="user_id")
-	private Long user_id;
+	private Long userId;
 	
 	@Column(name="otp_code")
 	private Integer otpCode;

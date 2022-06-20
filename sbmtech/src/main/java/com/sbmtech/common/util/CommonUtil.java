@@ -745,4 +745,8 @@ public class CommonUtil {
 		}
 
 	}
+	
+	public static String maskEmail(String email) {
+		return email.replaceAll("(^[^@]{3}|(?!^)\\G)[^@]", "$1*");
+	}
 }

@@ -10,7 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sbmtech.model.BloodGroup;
+import com.sbmtech.model.ContactTypeMaster;
+import com.sbmtech.model.DocTypeMaster;
+import com.sbmtech.model.Role;
 import com.sbmtech.service.DSSService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -22,8 +28,30 @@ public class DSSController {
 	
 	@GetMapping("/getBloodGroup")
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<BloodGroup> getBloodGroup() throws Exception {
-		return dssService.getAll();
+		return dssService.getAllBloodGroup();
+	}
+	
+	@GetMapping("/getAllContactType")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<ContactTypeMaster> getAllContactType() throws Exception {
+		return dssService.getAllContactType();
+	}
+	
+	@GetMapping("/getAllDocType")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<DocTypeMaster> getAllDocType() throws Exception {
+		return dssService.getAllDocType();
+	}
+	
+	@GetMapping("/getAllRole")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<Role> getAllRole() throws Exception {
+		return dssService.getAllRole();
 	}
 
 }

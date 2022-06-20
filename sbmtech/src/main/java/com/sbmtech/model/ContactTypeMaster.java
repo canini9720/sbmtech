@@ -15,20 +15,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "doc_type_master")
+@Table(name = "contact_type_master")
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class DocTypeMaster implements Serializable {
+public class ContactTypeMaster implements Serializable {
 
-	
+	/**
+	 * 
+	 */
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name = "doc_type_id")
-	private Integer docTypeId;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "cont_type_id")
+	private Integer contactTypeId;
 
-	@Column(name = "file_desc")
-	private String fileDesc;
+	@Column(name = "contact_desc")
+	private String contactDesc;
 }

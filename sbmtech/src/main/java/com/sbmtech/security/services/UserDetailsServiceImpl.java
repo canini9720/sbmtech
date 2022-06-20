@@ -28,6 +28,7 @@ import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
+import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.UserDetailDTO;
@@ -37,6 +38,7 @@ import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.ProfileRequest;
+import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -45,6 +47,7 @@ import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.OTPService;
+import com.sbmtech.service.impl.AuthServiceUtil;
 import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 @Service
 @Transactional
@@ -70,11 +73,10 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	}
 	
 
-	public void isVerified(UserDetailsImpl user ) throws Exception {
-		if(!user.isVerified()) {
+	public void isVerified(User user ) throws Exception {
+		if(!user.getVerified()) {
 			ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
 		}
-		
 	}
 
 
@@ -87,26 +89,41 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 
 
 	@Override
-	public OtpDTO forgotPwd(VerifyUserRequest forgotRequest) throws Exception {
-		OtpDTO otp=null;
+	public OtpDTO verifyUser(VerifyUserRequest req) throws Exception {
+        OtpDTO otp=null;
+
 		Optional<User> user=null;
-		if((forgotRequest.getType()==CommonConstants.INT_ONE) ) {
-			if(!userRepository.existsByUsername(forgotRequest.getUsername())) {
+		if((req.getType()==CommonConstants.INT_ONE) ) {
+			if(!userRepository.existsByUsername(req.getUsername())) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);
 			}
-			user = userRepository.findByUsername(forgotRequest.getUsername());
+			user = userRepository.findByUsername(req.getUsername());
 		}
-		if((forgotRequest.getType()==CommonConstants.INT_TWO) ) {
-			user=userRepository.getUserByEmailAndVerified(forgotRequest.getEmail(),true);
+		if((req.getType()==CommonConstants.INT_TWO) ) {
+			user=userRepository.getUserByEmailAndVerified(req.getEmail(),true);
 			if(!user.isPresent()) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);
 			}
 		}
-		otp=otpService.sendOTP(user.get().getUserId(), user.get().getEmail(),CommonConstants.FLOW_TYPE_FORGETPWD);
-		
-		
+		if(user.isPresent()) {
+	        otp=otpService.sendOTP(user.get().getUserId(), user.get().getEmail(),CommonConstants.FLOW_TYPE_FORGETPWD);
+		} 
 		return otp;
-		
+	}
+	@Override
+	public CommonResponse reset(ResetRequest req,String encodedPwd) throws Exception {
+		AuthServiceUtil.validateReset(req);
+		CommonResponse resp=null;
+		Optional<User> user=userRepository.findById(req.getUserId());
+		boolean isRequested=otpService.isUserRequestedForReset(req.getVerificationId(),req.getUserId());
+		if(!otpService.validateOTP(req.getVerificationId(),req.getOtpCode())) {
+			ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_OTP, ExceptionUtil.EXCEPTION_VALIDATION);
+		}
+		if(user.isPresent() && isRequested) {
+			user.get().setPassword(encodedPwd);
+			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+		} 
+		return resp;
 	}
 
 
@@ -150,7 +167,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		return resp;
 	}
 
-
+/*
 	@Override
 	public CommonResponse savePersonalDetails(ProfileRequest profileRequest) throws Exception {
 		CommonResponse resp=null;
@@ -186,7 +203,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return resp;
 	}
-
+*/
 
 	@Override
 	public MemberDetailResponse getAllMemberDetails(int pageNo, int pageSize, String sortBy, String sortDir) {
@@ -328,7 +345,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
 			BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
 			user.setMemberPersonalDetailEntity(personalDetialEntity);
-			user.setCreatedDate(new Date());
+			personalDetialEntity.setCreatedDate(new Date());
 			userDb=userRepository.saveAndFlush(user);
 			if(userDb!=null ) {
 				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
@@ -389,5 +406,24 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	public void deleteMemberContactDetails(List<Long> oldContIds) throws Exception {
 		mcRepository.deleteMemberContactDetailEntityByContIds(oldContIds);
 		
+	}
+
+
+	@Override
+	public ProfileCompleteStatusDTO getMemberProfileCompletionStatus(Long userId) throws Exception {
+		
+		ProfileCompleteStatusDTO memProfstatus=new ProfileCompleteStatusDTO();
+		Optional<User> userOp = userRepository.findById(userId);
+		if(userOp.isPresent()) {
+			MemberPersonalDetailEntity personalDetialEntity=userOp.get().getMemberPersonalDetailEntity();
+			if(personalDetialEntity!=null) {
+				memProfstatus.setPersonalDetail(true);
+			}
+			List<MemberContactDetailEntity> listContactDetail=userOp.get().getMemeberConactList();
+			if(listContactDetail!=null && !listContactDetail.isEmpty()) {
+				memProfstatus.setContactDetail(true);
+			}
+		}
+		return memProfstatus;
 	}
 }

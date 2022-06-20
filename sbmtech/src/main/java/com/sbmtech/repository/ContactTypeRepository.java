@@ -3,12 +3,12 @@ package com.sbmtech.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.sbmtech.model.BloodGroup;
+import com.sbmtech.model.ContactTypeMaster;
 
 
 
 @Repository
-public interface BloodRepository extends JpaRepository<BloodGroup, Integer>{
+public interface ContactTypeRepository extends JpaRepository<ContactTypeMaster, Integer>{
 		
 	
 }

@@ -10,7 +10,7 @@ import lombok.Setter;
 public class OtpDTO {
 		
 	
-	private Long id;
+	private Long verificationId;
 	
 	private Long userId;
 	

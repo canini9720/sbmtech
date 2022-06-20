@@ -14,6 +14,7 @@ import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.common.util.OTPGenerator;
 import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.OtpDTO;
+import com.sbmtech.model.Otp;
 import com.sbmtech.repository.OTPRepository;
 import com.sbmtech.service.EmailService;
 import com.sbmtech.service.NotificationService;
@@ -67,6 +68,18 @@ public class OTPServiceImpl implements OTPService {
 	public Boolean validateOTP(Long verificationId,Integer otpCode) throws Exception {
 		return otpRepository.validateOtp(verificationId, otpCode);
 
+	}
+
+
+
+
+	@Override
+	public Boolean isUserRequestedForReset(Long verificationId, Long userId) throws Exception {
+		Optional<Otp> otpOp=otpRepository.findByIdAndUserId(verificationId, userId);
+		if(otpOp.isPresent()) {
+			return true;
+		}
+		return false;
 	}
 
 }
