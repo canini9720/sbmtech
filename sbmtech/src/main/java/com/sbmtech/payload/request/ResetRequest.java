@@ -11,9 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ResetRequest {
 
-	private Long userId;
+	private String encrypedId;
 	private Long verificationId;
-	private String email;
 	private String password;
 	private String confirmPassword;
 	private Integer otpCode;

@@ -1,6 +1,8 @@
 package com.sbmtech.security.services;
 
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -10,9 +12,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,12 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
+import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
-import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
+import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.UserDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
@@ -42,16 +48,21 @@ import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
+import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.OTPService;
+import com.sbmtech.service.impl.AppSystemPropImpl;
 import com.sbmtech.service.impl.AuthServiceUtil;
 import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 @Service
 @Transactional
+@DependsOn("AppSystemProp")
 public class UserDetailsServiceImpl implements CustomeUserDetailsService {
+	
+	private static String secretKey;
 	
 	@Autowired
 	UserRepository userRepository;
@@ -64,6 +75,11 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	CommonService commonService;
+	
+	@PostConstruct
+	public void initialize() throws GeneralSecurityException, IOException {
+		secretKey = AppSystemPropImpl.props.get("json.secretKey");
+	}
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -114,8 +130,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	public CommonResponse reset(ResetRequest req,String encodedPwd) throws Exception {
 		AuthServiceUtil.validateReset(req);
 		CommonResponse resp=null;
-		Optional<User> user=userRepository.findById(req.getUserId());
-		boolean isRequested=otpService.isUserRequestedForReset(req.getVerificationId(),req.getUserId());
+		Long userId = CommonUtil.getLongValofObject(CommonUtil.decrypt(req.getEncrypedId(), secretKey));
+		Optional<User> user=userRepository.findById(userId);
+		boolean isRequested=otpService.isUserRequestedForReset(req.getVerificationId(),userId);
 		if(!otpService.validateOTP(req.getVerificationId(),req.getOtpCode())) {
 			ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_OTP, ExceptionUtil.EXCEPTION_VALIDATION);
 		}
@@ -231,6 +248,39 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
         return memberDetailResponse;
 		
 	}
+	
+	@Override
+	public MemberRegDetailResponse getAllMemberRegDetails(int pageNo, int pageSize, String sortBy, String sortDir) {
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+		List<UserRegistrationDetailDTO> userRegDetailDTO=null;
+		MemberRegDetailResponse memberRegDetailResponse=new MemberRegDetailResponse();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<User> pageUser = userRepository.findByMemberCategoryAndVerified(CommonConstants.INT_ONE,true ,pageable);
+
+        List<User> listOfPosts = pageUser.getContent();
+        
+        userRegDetailDTO= listOfPosts.stream().map(post -> mapToUserRegDTO(post)).collect(Collectors.toList());
+        if(userRegDetailDTO!=null && !userRegDetailDTO.isEmpty()) {
+        	memberRegDetailResponse.setUserRegDetailDTO(userRegDetailDTO);
+        	memberRegDetailResponse.setPageNo(pageUser.getNumber());
+        	memberRegDetailResponse.setPageSize(pageUser.getSize());
+        	memberRegDetailResponse.setTotalElements(pageUser.getTotalElements());
+        	memberRegDetailResponse.setTotalPages(pageUser.getTotalPages());
+        	memberRegDetailResponse.setLast(pageUser.isLast());
+        }
+
+        return memberRegDetailResponse;
+		
+	}
+	
+	private UserRegistrationDetailDTO mapToUserRegDTO(User user){
+		UserRegistrationDetailDTO userRegDetailDTO =    new UserRegistrationDetailDTO();
+    	BeanUtils.copyProperties(user, userRegDetailDTO);
+        return userRegDetailDTO;
+    }
 	
 	// convert Entity into DTO
     private UserDetailDTO mapToDTO(User user){

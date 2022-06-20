@@ -44,7 +44,7 @@ public class AuthServiceUtil {
 	}
 	
 	public static ResetRequest validateReset(ResetRequest req) throws Exception {
-		ExceptionUtil.throwNullOrEmptyValidationException("userId", req.getUserId(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("encrypedId", req.getEncrypedId(), true);
 		ExceptionUtil.throwNullOrEmptyValidationException("verificationId", req.getVerificationId(), true);
 		ExceptionUtil.throwNullOrEmptyValidationException("otpCode", req.getOtpCode(), true);
 		

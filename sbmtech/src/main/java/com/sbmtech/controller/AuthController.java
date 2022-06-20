@@ -242,7 +242,7 @@ public class AuthController {
 			respObj.put("message", "OTP sent to above emailId");
 			respObj.put("emailId", CommonUtil.maskEmail(otp.getEmail()));
 			respObj.put("verificationId", otp.getVerificationId());
-			respObj.put("userId", otp.getUserId());
+			respObj.put("encrypedId", CommonUtil.encrypt(CommonUtil.getStringValofObject(otp.getUserId()),secretKey));
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		}else{
