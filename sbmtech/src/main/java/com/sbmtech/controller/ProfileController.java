@@ -23,6 +23,7 @@ import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
+import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -130,7 +131,7 @@ public class ProfileController {
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
-		ContactDetailDTO resp = userDetailsService. getMemberContactDetailsById(profileRequest);
+		ContactDetailDTO resp = userDetailsService.getMemberContactDetailsById(profileRequest);
 		if (resp != null) {
 			respObj.put("memberContactDetailDTO", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
@@ -232,6 +233,8 @@ public class ProfileController {
 		}
 		  return gson.toJson(respObj);
     }
+	
+	
 	
 	
 }

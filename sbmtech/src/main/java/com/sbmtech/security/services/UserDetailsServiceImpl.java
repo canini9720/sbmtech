@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -33,6 +34,8 @@ import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.DocumentDTO;
+import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
@@ -40,9 +43,11 @@ import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.UserDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.model.DocumentEntity;
 import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -50,6 +55,7 @@ import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
+import com.sbmtech.repository.DocumentDetailRepository;
 import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
@@ -62,6 +68,9 @@ import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 @DependsOn("AppSystemProp")
 public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
+	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
+	private static final Logger loggerErr = Logger.getLogger(CommonConstants.LOGGER_SERVICES_ERROR);
+	
 	private static String secretKey;
 	
 	@Autowired
@@ -69,6 +78,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	MemberContactRepository mcRepository;
+	
+	@Autowired
+	DocumentDetailRepository docRepository;
 	
 	@Autowired
 	OTPService otpService;
@@ -374,6 +386,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    		asDto.removeAll(Collections.singleton(null));
 	    		contactDetailDTO=new ContactDetailDTO();
 	    		contactDetailDTO.setContactDTO(asDto);
+	    		contactDetailDTO.setUserId(profileRequest.getUserId());
 
 	    	}
 		}
@@ -409,25 +422,17 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		CommonResponse resp=null;
 		CustomeUserDetailsServiceUtil.validatePersonalDetialRequest(profileRequest,CommonConstants.SAVE);
 		User userDb=null;
-		//PersonDetailDTO personalDetailsDTO=profileRequest.getPersonDetails();
 		List<ContactDTO> contactDetailsList=profileRequest.getContactDetails();
 		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
 		List<MemberContactDetailEntity>oldContactEntity= null;
 		if(userOp.isPresent()) {
-			//List<MemberContactDetailEntity> contactEntityList=new ArrayList<>();
 			User user=userOp.get();
 			oldContactEntity=user.getMemeberConactList();
-			if(oldContactEntity!=null) {
+			if(oldContactEntity!=null && !oldContactEntity.isEmpty()) {
 				oldContactEntity.forEach(o -> {
 					o.setActive(CommonConstants.INT_ZERO);
 				});
 			}
-			//personalDetailsDTO.setUserId(profileRequest.getUserId());
-			
-			//MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
-			//BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
-			//user.setMemberPersonalDetailEntity(personalDetialEntity);
-			
 			
 			for(ContactDTO contDet:contactDetailsList) {
 				MemberContactDetailEntity contEnt=new MemberContactDetailEntity();
@@ -454,7 +459,17 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 
 	@Override
 	public void deleteMemberContactDetails(List<Long> oldContIds) throws Exception {
-		mcRepository.deleteMemberContactDetailEntityByContIds(oldContIds);
+		if(oldContIds!=null && !oldContIds.isEmpty()) {
+			mcRepository.deleteMemberContactDetailEntityByContIds(oldContIds);
+		}
+		
+	}
+	
+	@Override
+	public void deleteDocumentDetails(List<Long> oldDocIds) throws Exception {
+		if(oldDocIds!=null && !oldDocIds.isEmpty()) {
+			docRepository.deleteDocumentDetailEntityByDocIds(oldDocIds);
+		}
 		
 	}
 
@@ -475,5 +490,86 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			}
 		}
 		return memProfstatus;
+	}
+
+	@Override
+	public CommonResponse saveDocumentDetails(DocumentRequest docRequeset) throws Exception {
+		User userDb=null;
+		CommonResponse resp=null;
+		DocumentRequest docReq=CustomeUserDetailsServiceUtil.validateSaveDocumentDetailsRequest(docRequeset);
+		List<DocumentDTO> docDetailsList=docReq.getDocumentDetails();
+		Optional<User> userOp = userRepository.findById(docReq.getUserId());
+		List<DocumentEntity>oldDocumentEntity= null;
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			oldDocumentEntity=user.getDocumentList();
+			if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
+				oldDocumentEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+					try {
+						commonService.deleteFile(docReq.getUserId(), o.getDocTypeId());
+					} catch (Exception exp) {
+						loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+					}
+				});
+			}
+			
+			
+			if(docDetailsList!=null && !docDetailsList.isEmpty()) {
+				for(DocumentDTO docDet:docDetailsList) {
+					DocumentEntity docEnt=new DocumentEntity();
+					docDet.setUserId(docReq.getUserId());
+					BeanUtils.copyProperties(docDet, docEnt);
+					docEnt.setActive(CommonConstants.INT_ONE);
+					docEnt.setExpiry(CommonUtil.getDatefromString(docDet.getExpiry(), CommonConstants.DATE_ddMMyyyy));
+					docEnt.setCreatedDate(new Date());
+					docEnt.setUserEntity(user);
+					user.addDocumentDetail(docEnt);
+					
+				}
+				
+				userDb=userRepository.saveAndFlush(user);
+				if(userDb!=null ) {
+					List<Long> oldDocIds = oldDocumentEntity.stream().filter(doc->doc.getActive()==0)
+	                        .map(DocumentEntity::getDocId).collect(Collectors.toList());
+					deleteDocumentDetails(oldDocIds);
+					
+					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+					
+				}
+			}
+		}
+		return resp;
+		
+	}
+
+	@Override
+	public DocumentDetailDTO getDocumentDetailsById(ProfileRequest profileRequest) throws Exception {
+		DocumentDetailDTO documentDetailDTO=null;
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			if(user.getDocumentList()!=null) {
+	    		List<DocumentDTO> asDto = user.getDocumentList().stream().filter(Objects::nonNull).map(new Function<DocumentEntity, DocumentDTO>() {
+	    		    @Override
+	    		    public DocumentDTO apply(DocumentEntity ent) {
+	    		    	DocumentDTO document=null;
+	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
+	    		    		document=new DocumentDTO();
+	    		    		BeanUtils.copyProperties(ent, document);
+	    		    		document.setExpiry(CommonUtil.getFormattedDate(ent.getExpiry()));
+	    		    	}
+	    		    	return document;
+	    		    }
+	    		}).collect(Collectors.toList());
+	    		
+	    		asDto.removeAll(Collections.singleton(null));
+	    		documentDetailDTO=new DocumentDetailDTO();
+	    		documentDetailDTO.setDocumentDTO(asDto);
+	    		documentDetailDTO.setUserId(profileRequest.getUserId());
+	    	}
+		}
+		return documentDetailDTO;
+
 	}
 }

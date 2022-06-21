@@ -1,6 +1,8 @@
-package com.sbmtech.dto;
+package com.sbmtech.payload.request;
 
 import java.util.List;
+
+import com.sbmtech.dto.DocumentDTO;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +11,11 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class ContactDetailDTO {
+public class DocumentRequest {
+	
 	private Long userId;
-	private List<ContactDTO> contactDTO;
+	private List<DocumentDTO> documentDetails;
+	
+	
+
 }

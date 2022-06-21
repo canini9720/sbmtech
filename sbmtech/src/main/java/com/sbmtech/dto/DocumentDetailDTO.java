@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-public class ContactDetailDTO {
+public class DocumentDetailDTO {
+
 	private Long userId;
-	private List<ContactDTO> contactDTO;
+	private List<DocumentDTO> documentDTO;
 }

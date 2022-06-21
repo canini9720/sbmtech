@@ -37,7 +37,8 @@ public class DSSServieImpl implements DSSService {
 
 	@Override
 	public List<DocTypeMaster> getAllDocType() throws Exception {
-		return docTypeRepo.findAll();
+		return  docTypeRepo.findByActive(1);
+
 	}
 
 	@Override
@@ -48,6 +49,13 @@ public class DSSServieImpl implements DSSService {
 	@Override
 	public List<ContactTypeMaster> getAllContactType() throws Exception {
 		return contactTypeRepo.findAll();
+	}
+
+	@Override
+	public List<DocTypeMaster> getDocTypeForCompany() throws Exception {
+
+		List<DocTypeMaster> list= docTypeRepo.findByForGroupCompanyAndActive(1,1);
+		return list;
 	}
 
 }

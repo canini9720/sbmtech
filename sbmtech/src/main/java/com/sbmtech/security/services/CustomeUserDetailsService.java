@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -36,7 +38,11 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public CommonResponse saveMemberPersonalDetails( ProfileRequest profileRequest) throws Exception;
 	public CommonResponse saveMemberContactDetails( ProfileRequest profileRequest) throws Exception;
 	public void deleteMemberContactDetails(List<Long> ids) throws Exception;
+	public void deleteDocumentDetails(List<Long> oldDocIds) throws Exception;
 	public ProfileCompleteStatusDTO getMemberProfileCompletionStatus(Long userId) throws Exception;
+	
+	public CommonResponse saveDocumentDetails(DocumentRequest docReq)throws Exception;
+	public DocumentDetailDTO getDocumentDetailsById(ProfileRequest profileRequest) throws Exception;
 	
 	
 }

@@ -41,11 +41,18 @@ public class DSSController {
 	}
 	
 	@GetMapping("/getAllDocType")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<DocTypeMaster> getAllDocType() throws Exception {
 		return dssService.getAllDocType();
 	}
+	/*
+	@GetMapping("/getDocTypeForCompany")
+	@PreAuthorize("hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<DocTypeMaster> getDocTypeForCompany() throws Exception {
+		return dssService.getDocTypeForCompany();
+	}*/
 	
 	@GetMapping("/getAllRole")
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")

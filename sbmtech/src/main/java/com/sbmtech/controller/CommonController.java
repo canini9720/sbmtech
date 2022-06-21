@@ -7,8 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.dto.FileItemDTO;
-import com.sbmtech.payload.request.FileRequest;
+import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.service.CommonService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,25 +40,28 @@ public class CommonController {
 			@RequestParam(name = "userId") Long userId,
 			@RequestParam(name = "docTypeId") Integer docTypeId) throws Exception{
 		
-		String attachId = commonService.saveFile(file, userId, docTypeId);
+		GDriveResponse resp = commonService.saveFile(file, userId, docTypeId);
 		JSONObject respObj = new JSONObject();
-		respObj.put("attachmentId", attachId);
+		respObj.put("response", resp);
 		
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
 	
 	
-	@PostMapping(value="/getUserAttachmentCloud",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@GetMapping(value="/getUserAttachmentCloud/{userId}/{docTypeId}",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserAttachmentCloud(@RequestBody FileRequest fileRequest) throws Exception{
+	public String getUserAttachmentCloud(@PathVariable Long userId,@PathVariable Integer docTypeId ) throws Exception{
 		
-		List<FileItemDTO> listAllFiles = commonService.getAllFileByUserId( fileRequest.getUserId());
-		
+		List<FileItemDTO> listAllFiles = null;
+		listAllFiles=commonService.getAllFileByUser(userId,docTypeId);
 		JSONObject respObj = new JSONObject();
-		respObj.put("userFiles", listAllFiles);
-		
+		if(listAllFiles!=null) {
+			respObj.put("userFiles", listAllFiles);	
+		}else {
+			respObj.put("userFiles", "No file Found");
+		}
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}

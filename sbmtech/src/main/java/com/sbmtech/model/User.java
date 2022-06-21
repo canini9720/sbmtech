@@ -82,6 +82,9 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=MemberContactDetailEntity.class,cascade = CascadeType.ALL)
 	private List<MemberContactDetailEntity> memeberConactList= new ArrayList<MemberContactDetailEntity>();
 	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=DocumentEntity.class,cascade = CascadeType.ALL)
+	private List<DocumentEntity> documentList= new ArrayList<DocumentEntity>();
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -160,11 +163,29 @@ public class User {
 	public void setMemeberConactList(List<MemberContactDetailEntity> memeberConactList) {
 		this.memeberConactList = memeberConactList;
 	}
+	
+	public Date getVerifiedDate() {
+		return verifiedDate;
+	}
+	public void setVerifiedDate(Date verifiedDate) {
+		this.verifiedDate = verifiedDate;
+	}
+	public List<DocumentEntity> getDocumentList() {
+		return documentList;
+	}
+	public void setDocumentList(List<DocumentEntity> documentList) {
+		this.documentList = documentList;
+	}
 	public Date getCreatedDate() {
 		return createdDate;
 	}
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
+	}
+	
+	public void addDocumentDetail(DocumentEntity docEntity) {
+		documentList.add(docEntity);
+		docEntity.setUserEntity(this);
 	}
 	
 	

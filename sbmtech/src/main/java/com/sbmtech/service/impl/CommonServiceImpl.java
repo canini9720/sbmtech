@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -35,8 +36,10 @@ import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.dto.FileItemDTO;
+import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.GDriveUser;
+import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.repository.DocTypeRepository;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.service.CommonService;
@@ -90,11 +93,32 @@ public class CommonServiceImpl implements CommonService {
 		loggerInfo.info("credential success Post construct");
 	}
 	
-	
+	@Override
+	public void deleteFile(Long userId, Integer docTypeId) throws Exception {
+		try {
+			GDriveUser gDriveUser = gDriveRepo.findById(userId).get();
+			String pageToken = null;
+			 FileList result = driveService.files().list()
+				      .setQ("parents in '"+gDriveUser.getParentId()+"' and name = '"+docTypeId+"'")
+				      .setSpaces("drive")
+				      .setFields("nextPageToken, files(id, name)")
+				      .setPageToken(pageToken)
+				      .execute();
+	        for (File gFl : result.getFiles()){ 
+	        	String id = gFl.getId();
+	            driveService.files().delete(gFl.getId()).execute();
+	        } 
+		}catch (Exception ex) {
+		    throw ex;
+		}
+	}
 
 	@Override
-	public String saveFile(MultipartFile file,Long userId, Integer docTypeId) throws Exception {
+	public GDriveResponse saveFile(MultipartFile file,Long userId, Integer docTypeId) throws Exception {
+		GDriveResponse gDriveResp=null;
 		try {
+			
+			String contentType = new Tika().detect(file.getBytes());
 			GDriveUser gDriveUser = gDriveRepo.findById(userId).get();
 			String pageToken = null;
 			 FileList result = driveService.files().list()
@@ -120,12 +144,16 @@ public class CommonServiceImpl implements CommonService {
 		                    new ByteArrayInputStream(file.getBytes()))
 		              )
 		              .setFields("id").execute();
-		        return uploadFile.getId();
+		        gDriveResp=new GDriveResponse(CommonConstants.INT_ONE);
+		        gDriveResp.setGFileId(uploadFile.getId());
+		        gDriveResp.setDocTypeId(docTypeId);
+		        gDriveResp.setUserId(userId);
+		        gDriveResp.setContentType(contentType);
 		     }
 		  } catch (Exception ex) {
 		    throw ex;
 		  }
-		  return null;
+		  return gDriveResp;
 	}
 	
 
@@ -142,6 +170,7 @@ public class CommonServiceImpl implements CommonService {
 			FileItemDTO item = new FileItemDTO();
 			item.setId(file.getId());
 			item.setName(file.getName());
+			item.setContentType(file.getMimeType());
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			
 			driveService.files().get(file.getId()).executeMediaAndDownloadTo(outputStream);
@@ -158,18 +187,6 @@ public class CommonServiceImpl implements CommonService {
 				}
 			}
 			listFileItem.add(item);
-			
-/*			System.out.println("base64 for file name"+file.getName()+"="+base64);
-			if(file.getName().contains("3-mybanner")) {
-				java.io.File tfile = new java.io.File( "C:\\Users\\test\\New folder\\abc.txt" );
-				byte[] bytes = Base64.decodeBase64(base64 );
-				org.apache.commons.io.FileUtils.writeByteArrayToFile( tfile, bytes );
-			}
-			if(file.getName().contains("SAMPLE")) {
-				java.io.File tfile = new java.io.File( "C:\\Users\\Desktop\\test\\New folder\\abc.pdf" );
-				byte[] bytes = Base64.decodeBase64(base64 );
-				org.apache.commons.io.FileUtils.writeByteArrayToFile( tfile, bytes );
-			}*/
 		}
 		return listFileItem;
 	}
@@ -182,7 +199,7 @@ public class CommonServiceImpl implements CommonService {
 		  FileList result = driveService.files().list()
 		        .setQ(query)
 		        .setPageSize(10)
-		        .setFields("nextPageToken, files(id, name)")
+		        .setFields("nextPageToken, files(id, name,mimeType)")
 		        .execute();
 		  
 		  return result.getFiles();
@@ -322,6 +339,20 @@ public class CommonServiceImpl implements CommonService {
 			}
 		}
 		return item;	
+	}
+
+	@Override
+	public List<FileItemDTO> getAllFileByUser(Long userId, Integer docTypeId) throws Exception {
+		List<FileItemDTO> listAllFiles = null;
+		ExceptionUtil.throwNullOrEmptyValidationException("UserId", userId, true);
+		if(userId!=null && userId!=0 &&  docTypeId!=null && docTypeId!=0) {
+			listAllFiles=new ArrayList<FileItemDTO>();
+			FileItemDTO fileItem=this.getFileByUserIdAndDocTypeId(userId,docTypeId);
+			listAllFiles.add(fileItem);
+		}else if(docTypeId==null ||( docTypeId!=null && docTypeId==0)) {
+			listAllFiles=this.getAllFileByUserId(userId);	
+		}
+		return listAllFiles;
 	}
 
 

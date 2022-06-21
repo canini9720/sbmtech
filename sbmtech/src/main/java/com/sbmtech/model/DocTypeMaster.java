@@ -18,7 +18,6 @@ import lombok.Setter;
 @Table(name = "doc_type_master")
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 public class DocTypeMaster implements Serializable {
 
@@ -31,4 +30,14 @@ public class DocTypeMaster implements Serializable {
 
 	@Column(name = "file_desc")
 	private String fileDesc;
+	
+	@Column(name = "for_member")
+	private Integer forMember;
+	
+	@Column(name = "for_grp_cmpy")
+	private Integer forGroupCompany;
+	
+	@Column(name = "active")
+	private Integer active;
+	
 }

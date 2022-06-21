@@ -18,7 +18,6 @@ import lombok.Setter;
 @Table(name = "contact_type_master")
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 public class ContactTypeMaster implements Serializable {
 
@@ -34,4 +33,13 @@ public class ContactTypeMaster implements Serializable {
 
 	@Column(name = "contact_desc")
 	private String contactDesc;
+	
+	@Column(name = "for_member")
+	private Integer forMember;
+	
+	@Column(name = "for_grp_cmpy")
+	private Integer forGroupCompany;
+	
+	@Column(name = "active")
+	private Integer active;
 }

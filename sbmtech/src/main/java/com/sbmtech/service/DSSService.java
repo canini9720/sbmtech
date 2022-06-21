@@ -13,5 +13,7 @@ public interface DSSService {
 	public List<DocTypeMaster> getAllDocType()throws Exception;
 	public List<Role> getAllRole()throws Exception;
 	public List<ContactTypeMaster> getAllContactType() throws Exception;
+	
+	public List<DocTypeMaster> getDocTypeForCompany()throws Exception;
 
 }

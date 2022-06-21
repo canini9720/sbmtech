@@ -22,6 +22,8 @@ public class FileItemDTO implements Serializable {
 	private Integer docTypeId;
 	
 	private String docTypeDesc;
+	
+	private String contentType;
 
 	
 	
