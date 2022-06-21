@@ -38,8 +38,8 @@ public class CommonController {
 	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String saveAttachmentCloud(@RequestParam("attachment") MultipartFile file, 
-			@RequestParam(name = "userId") Long userId,
-			@RequestParam(name = "docTypeId") Integer docTypeId) throws Exception{
+			@RequestParam(name = "userId" , required = true) Long userId,
+			@RequestParam(name = "docTypeId" , required = true) Integer docTypeId) throws Exception{
 		
 		GDriveResponse resp = commonService.saveFile(file, userId, docTypeId);
 		JSONObject respObj = new JSONObject();
@@ -53,7 +53,7 @@ public class CommonController {
 	@GetMapping(value="/getUserAttachmentCloudByDocId/{docTypeId}",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserAttachmentCloud(@RequestParam(name = "userId") Long userId,@PathVariable Integer docTypeId ) throws Exception{
+	public String getUserAttachmentCloud(@RequestParam(name = "userId" , required = true) Long userId,@PathVariable Integer docTypeId ) throws Exception{
 		
 		List<FileItemDTO> listAllFiles = null;
 		listAllFiles=commonService.getAllFileByUser(userId,docTypeId);

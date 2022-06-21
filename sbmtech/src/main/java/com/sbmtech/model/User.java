@@ -85,6 +85,9 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=DocumentEntity.class,cascade = CascadeType.ALL)
 	private List<DocumentEntity> documentList= new ArrayList<DocumentEntity>();
 	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=EducationEntity.class,cascade = CascadeType.ALL)
+	private List<EducationEntity> educationList= new ArrayList<EducationEntity>();
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -186,6 +189,16 @@ public class User {
 	public void addDocumentDetail(DocumentEntity docEntity) {
 		documentList.add(docEntity);
 		docEntity.setUserEntity(this);
+	}
+	public void addEducationDetail(EducationEntity eduEntity) {
+		educationList.add(eduEntity);
+		eduEntity.setUserEntity(this);
+	}
+	public List<EducationEntity> getEducationList() {
+		return educationList;
+	}
+	public void setEducationList(List<EducationEntity> educationList) {
+		this.educationList = educationList;
 	}
 	
 	

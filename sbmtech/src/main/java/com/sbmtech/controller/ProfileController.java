@@ -82,7 +82,7 @@ public class ProfileController {
 	@GetMapping(value="getMemberRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)   or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserRegistrationDetails(@RequestParam(name = "userId") Long userId) throws Exception {
+	public String getUserRegistrationDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
@@ -105,7 +105,7 @@ public class ProfileController {
 	@GetMapping(value="getMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)   or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberPersonalDetails(@RequestParam(name = "userId") Long userId) throws Exception {
+	public String  getMemberPersonalDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
@@ -126,7 +126,7 @@ public class ProfileController {
 	@GetMapping(value="getMemberContactlDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)   or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberContactlDetails(@RequestParam(name = "userId") Long userId) throws Exception {
+	public String  getMemberContactlDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();

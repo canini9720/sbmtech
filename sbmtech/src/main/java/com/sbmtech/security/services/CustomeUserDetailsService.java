@@ -6,12 +6,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
+import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.DocumentRequest;
+import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -43,6 +45,12 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	
 	public CommonResponse saveDocumentDetails(DocumentRequest docReq)throws Exception;
 	public DocumentDetailDTO getDocumentDetailsById(ProfileRequest profileRequest) throws Exception;
+	
+	public CommonResponse saveEduDetails(EduRequest eduReq)throws Exception;
+	public void deleteEducationDetails(List<Long> oldEduIds) throws Exception ;
+	public EducationDetailDTO getMemberEduDetailsById(ProfileRequest profileRequest) throws Exception;
+	
+	
 	
 	
 }

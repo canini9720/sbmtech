@@ -36,6 +36,8 @@ import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
+import com.sbmtech.dto.EduDTO;
+import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
@@ -44,10 +46,12 @@ import com.sbmtech.dto.UserDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.DocumentEntity;
+import com.sbmtech.model.EducationEntity;
 import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.DocumentRequest;
+import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -56,6 +60,7 @@ import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.DocumentDetailRepository;
+import com.sbmtech.repository.EducationDetailRepository;
 import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
@@ -81,6 +86,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	DocumentDetailRepository docRepository;
+	
+	@Autowired
+	EducationDetailRepository eduRepository;
 	
 	@Autowired
 	OTPService otpService;
@@ -474,6 +482,14 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		
 	}
+	
+	@Override
+	public void deleteEducationDetails(List<Long> oldEduIds) throws Exception {
+		if(oldEduIds!=null && !oldEduIds.isEmpty()) {
+			eduRepository.deleteEducationDetailEntityByEduIds(oldEduIds);
+		}
+		
+	}
 
 
 	@Override
@@ -489,6 +505,14 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			List<MemberContactDetailEntity> listContactDetail=userOp.get().getMemeberConactList();
 			if(listContactDetail!=null && !listContactDetail.isEmpty()) {
 				memProfstatus.setContactDetail(true);
+			}
+			List<EducationEntity> listEduDetail=userOp.get().getEducationList();
+			if(listEduDetail!=null && !listEduDetail.isEmpty()) {
+				memProfstatus.setEducationDetail(true);
+			}
+			List<DocumentEntity> listDocumentDetail=userOp.get().getDocumentList();
+			if(listDocumentDetail!=null && !listDocumentDetail.isEmpty()) {
+				memProfstatus.setDocumentDetail(true);
 			}
 		}
 		return memProfstatus;
@@ -545,6 +569,8 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		
 	}
 
+	
+
 	@Override
 	public DocumentDetailDTO getDocumentDetailsById(ProfileRequest profileRequest) throws Exception {
 		DocumentDetailDTO documentDetailDTO=null;
@@ -573,5 +599,83 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return documentDetailDTO;
 
+	}
+
+	@Override
+	public CommonResponse saveEduDetails(EduRequest eduRequest) throws Exception {
+		
+		User userDb=null;
+		CommonResponse resp=null;
+		EduRequest eduReq=CustomeUserDetailsServiceUtil.validateSaveEduRequest(eduRequest);
+		List<EduDTO> eduDetailsList=eduReq.getEduDetails();
+		Optional<User> userOp = userRepository.findById(eduReq.getUserId());
+		List<EducationEntity>oldEduEntity= null;
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			oldEduEntity=user.getEducationList();
+			if(oldEduEntity!=null && !oldEduEntity.isEmpty()) {
+				oldEduEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+					try {
+						commonService.deleteFile(eduReq.getUserId(), o.getDocTypeId());
+					} catch (Exception exp) {
+						loggerErr.error("GDrive EXCEPTION --> USER_ID : "+eduReq.getUserId()+" DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+					}
+				});
+			}
+			
+			
+			if(eduDetailsList!=null && !eduDetailsList.isEmpty()) {
+				for(EduDTO eduDet:eduDetailsList) {
+					EducationEntity eduEnt=new EducationEntity();
+					eduDet.setUserId(eduReq.getUserId());
+					BeanUtils.copyProperties(eduDet, eduEnt);
+					eduEnt.setActive(CommonConstants.INT_ONE);
+					eduEnt.setCreatedDate(new Date());
+					eduEnt.setUserEntity(user);
+					user.addEducationDetail(eduEnt);
+					
+				}
+				
+				userDb=userRepository.saveAndFlush(user);
+				if(userDb!=null ) {
+					List<Long> oldDocIds = oldEduEntity.stream().filter(doc->doc.getActive()==0)
+	                        .map(EducationEntity::getEduId).collect(Collectors.toList());
+					deleteDocumentDetails(oldDocIds);
+					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+				}
+			}
+		}
+		return resp;
+		
+	}
+
+	@Override
+	public EducationDetailDTO getMemberEduDetailsById(ProfileRequest profileRequest) throws Exception {
+		EducationDetailDTO eduDetailDTO=null;
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			if(user.getEducationList()!=null) {
+	    		List<EduDTO> asDto = user.getEducationList().stream().filter(Objects::nonNull).map(new Function<EducationEntity, EduDTO>() {
+	    		    @Override
+	    		    public EduDTO apply(EducationEntity ent) {
+	    		    	EduDTO edudto=null;
+	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
+	    		    		edudto=new EduDTO();
+	    		    		BeanUtils.copyProperties(ent, edudto);
+	    		    		
+	    		    	}
+	    		    	return edudto;
+	    		    }
+	    		}).collect(Collectors.toList());
+	    		
+	    		asDto.removeAll(Collections.singleton(null));
+	    		eduDetailDTO=new EducationDetailDTO();
+	    		eduDetailDTO.setEduDTO(asDto);
+	    		eduDetailDTO.setUserId(profileRequest.getUserId());
+	    	}
+		}
+		return eduDetailDTO;	
 	}
 }
