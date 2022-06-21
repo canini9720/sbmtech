@@ -1,9 +1,5 @@
 package com.sbmtech.dto;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,8 +11,7 @@ public class PersonDetailDTO {
 
 	private Long userId;
 	private String middeName;
-	@JsonFormat(pattern="dd/MM/yyyy")
-	private Date dob;
+	private String dob;
 	private String birthPlace;
 	private String motherName;
 	private String fatherName;

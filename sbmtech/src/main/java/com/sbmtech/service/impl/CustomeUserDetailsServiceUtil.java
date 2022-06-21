@@ -2,7 +2,11 @@ package com.sbmtech.service.impl;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.constant.ExceptionValidationsConstants;
+import com.sbmtech.common.util.ValidationUtil;
 import com.sbmtech.dto.DocumentDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.payload.request.DocumentRequest;
@@ -14,7 +18,15 @@ public class CustomeUserDetailsServiceUtil {
 		if(action.equals("GET")) {
 			ExceptionUtil.throwNullOrEmptyValidationException("UserId", req.getUserId(), true);
 		}else if(action.equals("SAVE")){
-			//TO DO
+			if(req.getPersonDetails()!=null) {
+				if(StringUtils.isNotBlank(req.getPersonDetails().getDob())) {
+					if(!ValidationUtil.validateDateFormat(req.getPersonDetails().getDob(), CommonConstants.DATE_ddMMyyyy)){
+						ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_DATE_FORMAT, ExceptionUtil.EXCEPTION_VALIDATION);
+					}	
+				}
+					
+			}
+			
 		}
 		
 	}

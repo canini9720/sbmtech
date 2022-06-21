@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
@@ -18,7 +19,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,18 +35,22 @@ import com.google.api.services.drive.model.FileList;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.constant.ExceptionBusinessConstants;
+import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.GDriveUser;
+import com.sbmtech.model.User;
 import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.repository.DocTypeRepository;
 import com.sbmtech.repository.GDriveUserRepository;
+import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
 
 
 @Service
-@DependsOn("AppSystemProp")
+//@DependsOn("AppSystemProp")
 @Transactional
 public class CommonServiceImpl implements CommonService {
 	
@@ -63,6 +67,8 @@ public class CommonServiceImpl implements CommonService {
 	
 	static Drive driveService;
 	
+	@Autowired
+	UserRepository userRepository;
 	
 	@Autowired
 	GDriveUserRepository gDriveRepo;
@@ -70,8 +76,7 @@ public class CommonServiceImpl implements CommonService {
 	@Autowired
 	DocTypeRepository docTypeRepo;
 	
-	
-	
+		
 	@PostConstruct
 	public void initialize() throws GeneralSecurityException, IOException {
 		
@@ -117,42 +122,64 @@ public class CommonServiceImpl implements CommonService {
 	public GDriveResponse saveFile(MultipartFile file,Long userId, Integer docTypeId) throws Exception {
 		GDriveResponse gDriveResp=null;
 		try {
+			ExceptionUtil.throwNullOrEmptyValidationException("User Id", userId, true);
+			ExceptionUtil.throwNullOrEmptyValidationException("Doc Type Id", docTypeId, true);
+			Optional<DocTypeMaster> docTypeMasterOp =docTypeRepo.findById(docTypeId);
+			if(!docTypeMasterOp.isPresent()) {
+				ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_DOC_TYPE_ID, ExceptionUtil.EXCEPTION_VALIDATION);
+			}
+			Optional<GDriveUser> gDriveUserOp = gDriveRepo.findById(userId);
+			if(gDriveUserOp.isEmpty()) {
+				Optional<User> userOp=userRepository.findById(userId);
+				if(userOp.isPresent()) {
+					String parentId=this.createUserFolder(String.valueOf(userId));
+					GDriveUser gdriveUser=new GDriveUser();
+					gdriveUser.setUserId(userId);
+					gdriveUser.setParentId(parentId);
+					gDriveRepo.saveAndFlush(gdriveUser);
+				}else {
+					ExceptionUtil.throwException(ExceptionBusinessConstants.USER_NOT_FOUND, ExceptionUtil.EXCEPTION_BUSINESS);
+				}
+				gDriveUserOp = gDriveRepo.findById(userId);
+			}
 			
-			String contentType = new Tika().detect(file.getBytes());
-			GDriveUser gDriveUser = gDriveRepo.findById(userId).get();
-			String pageToken = null;
-			 FileList result = driveService.files().list()
-				      .setQ("parents in '"+gDriveUser.getParentId()+"' and name = '"+docTypeId+"'")
-				      .setSpaces("drive")
-				      .setFields("nextPageToken, files(id, name)")
-				      .setPageToken(pageToken)
-				      .execute();
-	        for (File gFl : result.getFiles()){ 
-	        	String id = gFl.getId();
-	            driveService.files().delete(gFl.getId()).execute();
-	        } 
-			String folderId = gDriveUser.getParentId();
-		    String fileName=String.valueOf(docTypeId);
-		    if (null != file) {
-		    	File fileMetadata = new File();
-		        fileMetadata.setParents(Collections.singletonList(folderId));
-		        fileMetadata.setName(fileName);
-		        File uploadFile = driveService
-		              .files()
-		              .create(fileMetadata, new InputStreamContent(
-		                    file.getContentType(),
-		                    new ByteArrayInputStream(file.getBytes()))
-		              )
-		              .setFields("id").execute();
-		        gDriveResp=new GDriveResponse(CommonConstants.INT_ONE);
-		        gDriveResp.setGFileId(uploadFile.getId());
-		        gDriveResp.setDocTypeId(docTypeId);
-		        gDriveResp.setUserId(userId);
-		        gDriveResp.setContentType(contentType);
-		     }
-		  } catch (Exception ex) {
-		    throw ex;
-		  }
+			if(gDriveUserOp.isPresent()) {
+				String contentType = new Tika().detect(file.getBytes());
+				GDriveUser gDriveUser=gDriveUserOp.get();
+				String pageToken = null;
+				FileList result = driveService.files().list()
+					      .setQ("parents in '"+gDriveUser.getParentId()+"' and name = '"+docTypeId+"'")
+					      .setSpaces("drive")
+					      .setFields("nextPageToken, files(id, name)")
+					      .setPageToken(pageToken)
+					      .execute();
+		        for (File gFl : result.getFiles()){ 
+		        	String id = gFl.getId();
+		            driveService.files().delete(gFl.getId()).execute();
+		        } 
+				String folderId = gDriveUser.getParentId();
+			    String fileName=String.valueOf(docTypeId);
+			    if (null != file) {
+			    	File fileMetadata = new File();
+			        fileMetadata.setParents(Collections.singletonList(folderId));
+			        fileMetadata.setName(fileName);
+			        File uploadFile = driveService
+			              .files()
+			              .create(fileMetadata, new InputStreamContent(
+			                    file.getContentType(),
+			                    new ByteArrayInputStream(file.getBytes()))
+			              )
+			              .setFields("id").execute();
+			        gDriveResp=new GDriveResponse(CommonConstants.INT_ONE);
+			        gDriveResp.setGFileId(uploadFile.getId());
+			        gDriveResp.setDocTypeId(docTypeId);
+			        gDriveResp.setUserId(userId);
+			        gDriveResp.setContentType(contentType);
+			     }
+			  } 
+			}catch (Exception ex) {
+			    throw ex;
+			}
 		  return gDriveResp;
 	}
 	

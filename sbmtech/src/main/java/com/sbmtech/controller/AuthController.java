@@ -110,7 +110,7 @@ public class AuthController {
 	}
 	
 	@PostMapping("/signin")
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)throws Exception {
+	public ResponseEntity<?> signin(@Valid @RequestBody LoginRequest loginRequest)throws Exception {
 	    Authentication authentication = authenticationManager
 	        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -146,7 +146,7 @@ public class AuthController {
 	  
 	  
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest)throws Exception {
+	public ResponseEntity<?> signup(@RequestBody SignupRequest signUpRequest)throws Exception {
 		Boolean isVerified=true;
 		AuthServiceUtil.validateSignUp(signUpRequest);
 		if (userRepository.existsByUsername(signUpRequest.getUsername())) {

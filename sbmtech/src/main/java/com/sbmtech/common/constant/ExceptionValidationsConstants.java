@@ -13,4 +13,5 @@ public class ExceptionValidationsConstants {
 	public static final String PASSWORD_NOT_MATCH = "2109";
 	public static final String INVALID_MEMBER_CATEGORY = "2110";
 	public static final String INVALID_OTP = "2111";
+	public static final String INVALID_DOC_TYPE_ID = "2112";
 }

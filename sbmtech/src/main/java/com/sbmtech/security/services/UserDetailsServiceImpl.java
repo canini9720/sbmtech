@@ -353,6 +353,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			MemberPersonalDetailEntity personalDetialEntity=user.getMemberPersonalDetailEntity();
 			if(personalDetialEntity!=null) {
 				BeanUtils.copyProperties(personalDetialEntity,personDetailDTO);	
+				personDetailDTO.setDob(CommonUtil.getFormattedDate(personalDetialEntity.getDob()));
 			}
 			FileItemDTO photoDTO=commonService.getFileByUserIdAndDocTypeId(profileRequest.getUserId(), CommonConstants.INT_ONE);
 			if(photoDTO!=null && StringUtils.isNotBlank(photoDTO.getBase64String())) {
@@ -407,6 +408,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			personalDetailsDTO.setUserId(profileRequest.getUserId());
 			MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
 			BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
+			personalDetialEntity.setDob(CommonUtil.getDatefromString(personalDetailsDTO.getDob(), CommonConstants.DATE_ddMMyyyy));
 			user.setMemberPersonalDetailEntity(personalDetialEntity);
 			personalDetialEntity.setCreatedDate(new Date());
 			userDb=userRepository.saveAndFlush(user);
