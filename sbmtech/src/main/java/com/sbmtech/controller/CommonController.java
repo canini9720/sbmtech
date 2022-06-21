@@ -2,6 +2,7 @@ package com.sbmtech.controller;
 
 import java.util.List;
 
+
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -34,7 +35,7 @@ public class CommonController {
 	
 	
 	@PostMapping(value="/saveAttachmentCloud", consumes=MediaType.MULTIPART_FORM_DATA_VALUE, produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String saveAttachmentCloud(@RequestParam("attachment") MultipartFile file, 
 			@RequestParam(name = "userId") Long userId,
@@ -49,10 +50,10 @@ public class CommonController {
 	}
 	
 	
-	@GetMapping(value="/getUserAttachmentCloud/{userId}/{docTypeId}",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@GetMapping(value="/getUserAttachmentCloudByDocId/{docTypeId}",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserAttachmentCloud(@PathVariable Long userId,@PathVariable Integer docTypeId ) throws Exception{
+	public String getUserAttachmentCloud(@RequestParam(name = "userId") Long userId,@PathVariable Integer docTypeId ) throws Exception{
 		
 		List<FileItemDTO> listAllFiles = null;
 		listAllFiles=commonService.getAllFileByUser(userId,docTypeId);
@@ -65,6 +66,26 @@ public class CommonController {
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
-
+	/*
+	@GetMapping(value="/getUserAttachmentCloudTest",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String getUserAttachmentCloudTest(@RequestParam(name = "userId") Long userId,@RequestParam(name = "docTypeId") Integer docTypeId,HttpServletRequest request ) throws Exception{
+		//commonService.checkIntrusion(request);
+		List<FileItemDTO> listAllFiles = null;
+		Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+		UserDetailsImpl customUser = (UserDetailsImpl)auth.getPrincipal();
+		Long userId2 = customUser.getUserId();
+		listAllFiles=commonService.getAllFileByUser(userId,docTypeId);
+		JSONObject respObj = new JSONObject();
+		if(listAllFiles!=null) {
+			respObj.put("userFiles", listAllFiles);	
+		}else {
+			respObj.put("userFiles", "No file Found");
+		}
+		Gson gson = new Gson();
+        return gson.toJson(respObj);
+	}
+*/
 }
 

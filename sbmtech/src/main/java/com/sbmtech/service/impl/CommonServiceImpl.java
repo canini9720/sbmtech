@@ -13,12 +13,16 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,18 +43,21 @@ import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.exception.IntrusionException;
 import com.sbmtech.model.DocTypeMaster;
+import com.sbmtech.model.ERole;
 import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.repository.DocTypeRepository;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.UserRepository;
+import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 
 
 @Service
-//@DependsOn("AppSystemProp")
+@DependsOn("AppSystemProp")
 @Transactional
 public class CommonServiceImpl implements CommonService {
 	
@@ -380,6 +387,22 @@ public class CommonServiceImpl implements CommonService {
 			listAllFiles=this.getAllFileByUserId(userId);	
 		}
 		return listAllFiles;
+	}
+
+	@Override
+	public void checkIntrusion(HttpServletRequest request) throws IntrusionException {
+		if(request.getParameter("userId")!=null) {
+			Long userId=Long.valueOf(request.getParameter("userId"));
+			Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+			UserDetailsImpl customUser = (UserDetailsImpl)auth.getPrincipal();
+			Long loggedUser = customUser.getUserId();
+			loggerInfo.info("Param userid="+userId+" , Logged User="+loggedUser);
+			System.out.println("Param userid="+userId+" , Logged User="+loggedUser);
+			if(auth != null && auth.getAuthorities().stream().anyMatch(a -> !a.getAuthority().equals(ERole.ROLE_ADMIN.toString())) && userId!=loggedUser) {
+				throw new IntrusionException("Invalid access");
+			}
+		}
+		
 	}
 
 

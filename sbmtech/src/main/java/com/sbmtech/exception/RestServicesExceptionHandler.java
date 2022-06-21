@@ -65,6 +65,28 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 		return responseEntity;
 	}
 	
+	@ExceptionHandler(value = { IntrusionException.class })
+	@ResponseBody
+	protected ResponseEntity<Object> handleIntrusionException(Exception ex, WebRequest request) {
+		
+		loggerInfo.info("<< handleIntrusionException >>");
+		
+		
+		printErrorLogsToLogger(ex, request);
+		
+		
+		String errorMsg = getApplicationErrorMessage(ex);
+		JSONParser parser = new JSONParser();
+		JSONObject json=null;
+		try {
+			json = (JSONObject) parser.parse(errorMsg);
+			System.out.println(json);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} 
+		return new ResponseEntity<Object>(json, getHttpStatus(ex));
+	 }
+	
 	@ExceptionHandler(value = { BusinessException.class, ValidationException.class })
 	@ResponseBody
 	protected ResponseEntity<Object> handleValidationAndBusinessExceptions(Exception ex, WebRequest request) {

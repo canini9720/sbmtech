@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
@@ -76,7 +77,7 @@ public class DocumentController {
 	
 	
 	@PostMapping(value="saveDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')   or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public String saveDocumentDetails(@RequestBody DocumentRequest docRequest)throws Exception {
 		Gson gson = new Gson();
@@ -95,10 +96,10 @@ public class DocumentController {
 		  return gson.toJson(respObj);
 	  }
 	
-	@GetMapping(value="getDocumentDetails/{userId}", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole('MEMBER')  or hasRole('GROUP')  or hasRole('COMPANY')   or hasRole('ADMIN')")
+	@GetMapping(value="getDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getDocumentDetails(@PathVariable Long userId) throws Exception {
+	public String  getDocumentDetails(@RequestParam(name = "userId") Long userId) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
