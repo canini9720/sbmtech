@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
 import com.sbmtech.model.DocTypeMaster;
+import com.sbmtech.model.PaidBasisMaster;
 import com.sbmtech.model.Role;
+import com.sbmtech.model.WorkTimeMaster;
 import com.sbmtech.service.DSSService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,5 +62,21 @@ public class DSSController {
 	public List<Role> getAllRole() throws Exception {
 		return dssService.getAllRole();
 	}
+	
+	@GetMapping("/getWorkTimeMaster")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<WorkTimeMaster> getWorkTimeMaster() throws Exception {
+		return dssService.getWorkTimeMaster();
+	}
+
+	
+	@GetMapping("/getPaidBasisMaster")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<PaidBasisMaster> getPaidBasisMaster() throws Exception {
+		return dssService.getPaidBasisMaster();
+	}
+
 
 }

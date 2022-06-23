@@ -88,6 +88,9 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=EducationEntity.class,cascade = CascadeType.ALL)
 	private List<EducationEntity> educationList= new ArrayList<EducationEntity>();
 	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=EmploymentEntity.class,cascade = CascadeType.ALL)
+	private List<EmploymentEntity> employmentList= new ArrayList<EmploymentEntity>();
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -200,6 +203,15 @@ public class User {
 	public void setEducationList(List<EducationEntity> educationList) {
 		this.educationList = educationList;
 	}
-	
+	public List<EmploymentEntity> getEmploymentList() {
+		return employmentList;
+	}
+	public void setEmploymentList(List<EmploymentEntity> employmentList) {
+		this.employmentList = employmentList;
+	}
+	public void addEmploymentDetail(EmploymentEntity empEntity) {
+		employmentList.add(empEntity);
+		empEntity.setUserEntity(this);
+	}
 	
 }

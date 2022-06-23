@@ -1,7 +1,5 @@
 package com.sbmtech.dto;
 
-import javax.persistence.Column;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

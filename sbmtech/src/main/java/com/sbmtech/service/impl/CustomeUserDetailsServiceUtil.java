@@ -9,9 +9,11 @@ import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.ValidationUtil;
 import com.sbmtech.dto.DocumentDTO;
 import com.sbmtech.dto.EduDTO;
+import com.sbmtech.dto.EmploymentDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
+import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 
 public class CustomeUserDetailsServiceUtil {
@@ -81,4 +83,20 @@ public class CustomeUserDetailsServiceUtil {
 		}
 		return req;
 	}
+	
+	public static EmploymentRequest validateSaveEmploymentRequest(EmploymentRequest req) throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("User Id", req.getUserId(), true);
+		List<EmploymentDTO> listEmpDto=req.getEmploymentDetails();
+		if (listEmpDto!=null) {
+			for (int i = 0; i < listEmpDto.size(); i++) {
+				EmploymentDTO empDTO = listEmpDto.get(i);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Designation",empDTO.getDesignation(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Company",empDTO.getCompany(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" StartDate",empDTO.getStartDate(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" EndDate",empDTO.getEndDate(), true);
+			}
+		}
+		return req;
+	}
+	
 }

@@ -8,11 +8,15 @@ import org.springframework.stereotype.Service;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
 import com.sbmtech.model.DocTypeMaster;
+import com.sbmtech.model.PaidBasisMaster;
 import com.sbmtech.model.Role;
+import com.sbmtech.model.WorkTimeMaster;
 import com.sbmtech.repository.BloodRepository;
 import com.sbmtech.repository.ContactTypeRepository;
 import com.sbmtech.repository.DocTypeRepository;
+import com.sbmtech.repository.PaidBasisMasterRepository;
 import com.sbmtech.repository.RoleRepository;
+import com.sbmtech.repository.WorkTimeRepository;
 import com.sbmtech.service.DSSService;
 
 @Service
@@ -29,6 +33,12 @@ public class DSSServieImpl implements DSSService {
 	
 	@Autowired
 	ContactTypeRepository contactTypeRepo;
+	
+	@Autowired
+	WorkTimeRepository workTimeRepo;
+	
+	@Autowired
+	PaidBasisMasterRepository paidBasisMasRepo;
 
 	@Override
 	public List<BloodGroup> getAllBloodGroup() throws Exception {
@@ -55,6 +65,17 @@ public class DSSServieImpl implements DSSService {
 	public List<DocTypeMaster> getDocTypeForCompany() throws Exception {
 
 		List<DocTypeMaster> list= docTypeRepo.findByForGroupCompanyAndActive(1,1);
+		return list;
+	}
+
+	@Override
+	public List<WorkTimeMaster> getWorkTimeMaster() throws Exception {
+		List<WorkTimeMaster> list= workTimeRepo.findByActive(1);
+		return list;
+	}
+	@Override
+	public List<PaidBasisMaster> getPaidBasisMaster()throws Exception{
+		List<PaidBasisMaster> list= paidBasisMasRepo.findByActive(1);
 		return list;
 	}
 
