@@ -14,11 +14,14 @@ import com.sbmtech.payload.response.GDriveResponse;
 
 public interface CommonService {
 	public void checkIntrusion(HttpServletRequest request)throws IntrusionException ;
+	public String createSession(Long userId) throws Exception ;
+	public void signout(String sessionId) throws Exception ;
 	public String createUserFolder(String userId) throws Exception ;
 	public GDriveResponse saveFile(MultipartFile file,Long userId,Integer docTypeId)throws Exception;
 	public List<FileItemDTO> getAllFileByUserId(Long userId)throws Exception;
 	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId,Integer docTypeId)throws Exception;
 	public void deleteFile(Long userId, Integer docTypeId) throws Exception ;
 	public List<FileItemDTO> getAllFileByUser(Long userId,Integer docTypeId)throws Exception;
+	public boolean checkTokenExist(HttpServletRequest request)throws Exception;
 
 }

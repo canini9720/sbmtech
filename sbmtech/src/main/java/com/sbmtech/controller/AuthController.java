@@ -15,7 +15,6 @@ import javax.validation.Valid;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +33,8 @@ import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.util.CommonUtil;
-import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.OtpDTO;
+import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.GDriveUser;
@@ -44,6 +43,7 @@ import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.LoginRequest;
 import com.sbmtech.payload.request.ResetRequest;
+import com.sbmtech.payload.request.SignoutRequest;
 import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.TokenRefreshRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -120,15 +120,23 @@ public class AuthController {
 			ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
 		}
 	    String jwt = jwtUtils.generateJwtToken(userDetails);
+	    String sessionId=commonService.createSession(userDetails.getUserId());
 	    List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
 	        .collect(Collectors.toList());
 	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
 	    ProfileCompleteStatusDTO profileCompleteDTO=userDetailsService.getMemberProfileCompletionStatus(userDetails.getUserId());
-	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), userDetails.getUserId(),
+	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), 
 	        userDetails.getUsername(), roles,profileCompleteDTO));
 	  }
-	
-	
+	/*
+	@PostMapping("/signOut")
+	public String signOut(@RequestBody SignoutRequest signoutRequest)throws Exception {
+	    
+	    commonService.signout(signoutRequest.getSessionId());
+	    
+	    return "";
+	  }
+	*/
 	
 	  @PostMapping("/refreshtoken")
 	  public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
@@ -137,7 +145,7 @@ public class AuthController {
 	        .map(refreshTokenService::verifyExpiration)
 	        .map(RefreshToken::getUser)
 	        .map(user -> {
-	          String token = jwtUtils.generateTokenFromUsername(user.getUsername());
+	          String token = jwtUtils.generateTokenFromUsername(user.getUsername(),user.getUserId());
 	          return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
 	        })
 	        .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,

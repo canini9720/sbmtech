@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbmtech.exception.IntrusionException;
 import com.sbmtech.security.services.UserDetailsServiceImpl;
 import com.sbmtech.service.CommonService;
@@ -58,6 +61,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 		}
 		filterChain.doFilter(request, response);
 	}
+	
+	 public String convertObjectToJson(Object object) throws JsonProcessingException {
+	        if (object == null) {
+	            return null;
+	        }
+	        ObjectMapper mapper = new ObjectMapper();
+	        return mapper.writeValueAsString(object);
+	    }
 	private String parseJwt(HttpServletRequest request) {
 		String headerAuth = request.getHeader("Authorization");
 		if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {

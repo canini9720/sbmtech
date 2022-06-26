@@ -1,5 +1,7 @@
 package com.sbmtech.security.jwt;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,13 +11,14 @@ import org.springframework.stereotype.Component;
 
 import com.sbmtech.security.services.UserDetailsImpl;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import org.springframework.http.ResponseCookie;
+import io.jsonwebtoken.impl.DefaultClaims;
 
 @Component
 public class JwtUtils {
@@ -31,11 +34,16 @@ public class JwtUtils {
   private String jwtCookie;
   
   public String generateJwtToken(UserDetailsImpl userPrincipal) {
-    return generateTokenFromUsername(userPrincipal.getUsername());
+    return generateTokenFromUsername(userPrincipal.getUsername(),userPrincipal.getUserId());
   }
   
-  public String generateTokenFromUsername(String username) {
-    return Jwts.builder().setSubject(username).setIssuedAt(new Date())
+  public String generateTokenFromUsername(String username,Long userId) {
+      Claims cl=new DefaultClaims();
+      cl.put("userId", userId);
+      cl.put("sub",username);
+      cl.put("iat",new Date());
+    return Jwts.builder().setClaims(cl)
+    		
         .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)).signWith(SignatureAlgorithm.HS512, jwtSecret)
         .compact();
   }
@@ -63,7 +71,7 @@ public class JwtUtils {
   }
   
   public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
-	    String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+	    String jwt = generateTokenFromUsername(userPrincipal.getUsername(),userPrincipal.getUserId());
 	    ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
 	    return cookie;
   }

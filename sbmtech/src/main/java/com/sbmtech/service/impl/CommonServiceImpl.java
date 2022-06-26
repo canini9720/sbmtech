@@ -9,6 +9,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,7 @@ import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
+import com.sbmtech.common.util.SessionTokenGenerator;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.exception.IntrusionException;
@@ -48,10 +50,12 @@ import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.User;
+import com.sbmtech.model.UserSessionEntity;
 import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.repository.DocTypeRepository;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.UserRepository;
+import com.sbmtech.repository.UserSessionRepository;
 import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 
@@ -82,6 +86,10 @@ public class CommonServiceImpl implements CommonService {
 	
 	@Autowired
 	DocTypeRepository docTypeRepo;
+
+	
+	@Autowired
+	UserSessionRepository userSessionRepo;
 	
 		
 	@PostConstruct
@@ -402,6 +410,41 @@ public class CommonServiceImpl implements CommonService {
 				throw new IntrusionException("Invalid access");
 			}
 		}
+		
+	}
+
+	@Override
+	public String createSession(Long userId) throws Exception {
+		String sessToken= new SessionTokenGenerator().generateId(30);
+		UserSessionEntity userSessionEnt=new UserSessionEntity();
+		userSessionEnt.setUserId(userId);
+		userSessionEnt.setSessionToken(sessToken);
+		userSessionEnt.setTokenCreatedDate(new Date());
+		userSessionRepo.saveAndFlush(userSessionEnt);
+		return sessToken;
+	}
+
+	@Override
+	public boolean checkTokenExist(HttpServletRequest request) throws Exception {
+		Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+		UserDetailsImpl customUser = (UserDetailsImpl)auth.getPrincipal();
+		if(customUser!=null && customUser.getUserId()!=null) {
+			Optional<UserSessionEntity> userSessionOpEnt=userSessionRepo.findById(customUser.getUserId());
+			if(userSessionOpEnt.isPresent()) {
+				UserSessionEntity userSessionEnt=userSessionOpEnt.get();
+				System.out.println(userSessionEnt);
+				System.out.println("session exists for user="+customUser.getUserId());
+				return true;
+			}
+		}
+		return false;
+		
+		
+	}
+
+	@Override
+	public void signout(String sessionId) throws Exception {
+		userSessionRepo.deleteUserSessionEntityBySessionToken(sessionId);
 		
 	}
 
