@@ -10,10 +10,12 @@ import com.sbmtech.common.util.ValidationUtil;
 import com.sbmtech.dto.DocumentDTO;
 import com.sbmtech.dto.EduDTO;
 import com.sbmtech.dto.EmploymentDTO;
+import com.sbmtech.dto.JobRequestDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 
 public class CustomeUserDetailsServiceUtil {
@@ -98,5 +100,20 @@ public class CustomeUserDetailsServiceUtil {
 		}
 		return req;
 	}
+	
+	public static JobRequest validateSaveJobRequest(JobRequest req) throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("User Id", req.getUserId(), true);
+		List<JobRequestDTO> listJobReqDto=req.getJobRequestDetails();
+		if (listJobReqDto!=null) {
+			for (int i = 0; i < listJobReqDto.size(); i++) {
+				JobRequestDTO jobReqDTO = listJobReqDto.get(i);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Designation",jobReqDTO.getDesignation(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Job Location",jobReqDTO.getJobLocation(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" FreeFromDate",jobReqDTO.getFreeFrom(), true);
+			}
+		}
+		return req;
+	}
+	
 	
 }

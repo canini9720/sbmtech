@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
-import com.sbmtech.dto.EmploymentDetailDTO;
+import com.sbmtech.dto.JobRequestDetailDTO;
 import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
@@ -105,7 +105,7 @@ public class EmploymentController {
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
-		EmploymentDetailDTO resp = userDetailsService.getMemberEmpDetailsById(profileRequest);
+		JobRequestDetailDTO resp = userDetailsService.getMemberJobReqDetailsById(profileRequest);
 		if (resp != null) {
 			respObj.put("empDetails", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);

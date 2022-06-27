@@ -41,6 +41,10 @@ import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.EmploymentDTO;
 import com.sbmtech.dto.EmploymentDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
+import com.sbmtech.dto.JobReqWorkPaidDTO;
+import com.sbmtech.dto.JobReqWorkTimeDTO;
+import com.sbmtech.dto.JobRequestDTO;
+import com.sbmtech.dto.JobRequestDetailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
@@ -52,6 +56,9 @@ import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.DocumentEntity;
 import com.sbmtech.model.EducationEntity;
 import com.sbmtech.model.EmploymentEntity;
+import com.sbmtech.model.JobReqPaidDetailEntity;
+import com.sbmtech.model.JobReqWorkTimeEntity;
+import com.sbmtech.model.JobRequestEntity;
 import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
 import com.sbmtech.model.User;
@@ -60,6 +67,7 @@ import com.sbmtech.model.WorkTimeEntity;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -70,6 +78,7 @@ import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.DocumentDetailRepository;
 import com.sbmtech.repository.EducationDetailRepository;
 import com.sbmtech.repository.EmploymentDetailRepository;
+import com.sbmtech.repository.JobRequestDetailRepository;
 import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
@@ -103,7 +112,8 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	@Autowired
 	EmploymentDetailRepository emptRepository;
 	
-	
+	@Autowired
+	JobRequestDetailRepository jobReqRepository;
 	
 	@Autowired
 	OTPService otpService;
@@ -512,6 +522,14 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		
 	}
+	
+	@Override
+	public void deleteJobReqDetails(List<Long> oldJobReqIds) throws Exception {
+		if(oldJobReqIds!=null && !oldJobReqIds.isEmpty()) {
+			jobReqRepository.deleteJobRequestDetailEntityByJobReqIds(oldJobReqIds);
+		}
+		
+	}
 
 	@Override
 	public ProfileCompleteStatusDTO getMemberProfileCompletionStatus(Long userId) throws Exception {
@@ -823,4 +841,125 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return empDetailDTO;	
 	}
+
+	@Override
+	public CommonResponse saveJobRequestDetails(JobRequest jobRequest) throws Exception {
+		User userDb=null;
+		CommonResponse resp=null;
+		JobRequest jobReq=CustomeUserDetailsServiceUtil.validateSaveJobRequest(jobRequest);
+		List<JobRequestDTO> jobReqDetailsList=jobReq.getJobRequestDetails();
+		Optional<User> userOp = userRepository.findById(jobReq.getUserId());
+		if(userOp.isPresent()) {
+			List<JobRequestEntity>oldJobReqEntity= null;
+			User user=userOp.get();
+			oldJobReqEntity=user.getJobRequestList();
+			if(oldJobReqEntity!=null && !oldJobReqEntity.isEmpty()) {
+				oldJobReqEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+					
+				});
+			}
+			
+			
+			if(jobReqDetailsList!=null && !jobReqDetailsList.isEmpty()) {
+				for(JobRequestDTO jobReqDet:jobReqDetailsList) {
+					JobRequestEntity jobReqEnt=new JobRequestEntity();
+					jobReqDet.setUserId(jobReq.getUserId());
+					BeanUtils.copyProperties(jobReqDet, jobReqEnt);
+					jobReqEnt.setFreeFrom(CommonUtil.getDatefromString(jobReqDet.getFreeFrom(), CommonConstants.DATE_ddMMyyyy));
+					jobReqEnt.setActive(CommonConstants.INT_ONE);
+					jobReqEnt.setCreatedDate(new Date());
+					jobReqEnt.setUserEntity(user);
+					
+					List<JobReqWorkTimeDTO> workTimeList=jobReqDet.getJobReqWorkTimeDetails();
+					if(workTimeList!=null && !workTimeList.isEmpty()) {
+						for(JobReqWorkTimeDTO workTimeDto:workTimeList) {
+							JobReqWorkTimeEntity workEnt=new JobReqWorkTimeEntity();
+							JobReqWorkPaidDTO paidDTO=workTimeDto.getJobReqWorkPaidDetail();
+							if(paidDTO!=null) {
+								JobReqPaidDetailEntity workPaidEnt=new JobReqPaidDetailEntity();
+								BeanUtils.copyProperties(paidDTO, workPaidEnt);
+								workEnt.setJobReqPaidDetailEntity(workPaidEnt);
+								workPaidEnt.setJobReqWorkTimeEntity(workEnt);
+							}
+							
+							workEnt.setWorkTimeId(workTimeDto.getWorkTimeId());
+							workEnt.setJobRequestEntity(jobReqEnt);
+							jobReqEnt.addJobReqWorkTimeDetail(workEnt);
+						}
+					}
+					
+					user.addJobRequestDetail(jobReqEnt);
+					
+				}
+				
+				userDb=userRepository.saveAndFlush(user);
+				if(userDb!=null ) {
+					List<Long> oldJobReqIds = oldJobReqEntity.stream().filter(doc->doc.getActive()==0)
+	                        .map(JobRequestEntity::getJobReqId).collect(Collectors.toList());
+					deleteJobReqDetails(oldJobReqIds);
+					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+				}
+			}
+		}
+		return resp;
+		
+	}
+
+	@Override
+	public JobRequestDetailDTO getMemberJobReqDetailsById(ProfileRequest profileRequest) throws Exception {
+		JobRequestDetailDTO jobReqDetailDTO=null;
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			if(user.getJobRequestList()!=null) {
+	    		List<JobRequestDTO> asDto = user.getJobRequestList().stream().filter(Objects::nonNull).map(new Function<JobRequestEntity, JobRequestDTO>() {
+	    		    @Override
+	    		    public JobRequestDTO apply(JobRequestEntity ent) {
+	    		    	JobRequestDTO jobReqdto=null;
+	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
+	    		    		jobReqdto=new JobRequestDTO();
+	    		    		BeanUtils.copyProperties(ent, jobReqdto);
+	    		    		jobReqdto.setFreeFrom(CommonUtil.getFormattedDate(ent.getFreeFrom()));
+	    		    		
+	    		    		List<JobReqWorkTimeEntity> workTimeList=ent.getJobReqworkTimeList();
+	    		    		if(workTimeList!=null) {
+	    		    			List<JobReqWorkTimeDTO> workDtoList = workTimeList.stream().filter(Objects::nonNull).map(new Function<JobReqWorkTimeEntity, JobReqWorkTimeDTO>() {
+	    			    		    @Override
+	    			    		    public JobReqWorkTimeDTO apply(JobReqWorkTimeEntity workTimeEnt) {
+	    			    		    	JobReqWorkTimeDTO workdto=null;
+    			    		    		workdto=new JobReqWorkTimeDTO();
+    			    		    		BeanUtils.copyProperties(workTimeEnt, workdto);
+    			    		    		JobReqPaidDetailEntity paidEnt=workTimeEnt.getJobReqPaidDetailEntity();
+    			    		    		if(paidEnt!=null) {
+    			    		    			JobReqWorkPaidDTO paidDto=new JobReqWorkPaidDTO();
+    			    		    			BeanUtils.copyProperties(paidEnt, paidDto);
+    			    		    			workdto.setJobReqWorkPaidDetail(paidDto);
+    			    		    		}
+	    			    		    	return workdto;
+	    			    		    }
+	    			    		}).collect(Collectors.toList());
+	    		    			workDtoList.removeAll(Collections.singleton(null));
+	    		    			jobReqdto.setJobReqWorkTimeDetails(workDtoList);
+	    		    		}
+	    		    		
+	    		    		
+	    		    	}
+	    		    	return jobReqdto;
+	    		    }
+	    		}).collect(Collectors.toList());
+	    		
+	    		asDto.removeAll(Collections.singleton(null));
+	    		jobReqDetailDTO=new JobRequestDetailDTO();
+	    		jobReqDetailDTO.setJobReqDTO(asDto);
+	    		jobReqDetailDTO.setUserId(profileRequest.getUserId());
+	    	}
+		}
+		return jobReqDetailDTO;
+	}
+
+	
+
+	
 }

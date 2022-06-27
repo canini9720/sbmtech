@@ -15,21 +15,21 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "employment_work_paid_detail")
+@Table(name = "job_req_work_paid_detail")
 @Setter
 @Getter
 @NoArgsConstructor
-public class WorkPaidDetailEntity implements Serializable {
+public class JobReqPaidDetailEntity implements Serializable {
 
 	
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@Column(name = "empt_work_paid_id")
-	private Long emptWorkPaidId;
+	@Column(name = "job_req_paid_id")
+	private Long jobReqWorkPaidId;
 
 	
-	@Column(name = "emp_work_paid_basis_id")
+	@Column(name = "job_req_paid_basis_id")
 	private Integer paidBasisId;
 	
 
@@ -47,8 +47,8 @@ public class WorkPaidDetailEntity implements Serializable {
 	
 	@OneToOne
     @MapsId
-    @JoinColumn(name = "empt_work_paid_id")
-    private WorkTimeEntity workTimeEntity;
+    @JoinColumn(name = "job_req_paid_id")
+    private JobReqWorkTimeEntity jobReqWorkTimeEntity;
 	
 	
 	

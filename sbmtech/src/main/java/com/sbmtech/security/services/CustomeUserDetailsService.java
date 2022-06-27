@@ -8,6 +8,7 @@ import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.EmploymentDetailDTO;
+import com.sbmtech.dto.JobRequestDetailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
@@ -16,6 +17,7 @@ import com.sbmtech.model.User;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
@@ -58,6 +60,8 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public EmploymentDetailDTO getMemberEmpDetailsById(ProfileRequest profileRequest) throws Exception;
 	
 	
-	
-	
+	public CommonResponse saveJobRequestDetails(JobRequest jobRequest)throws Exception;	
+	public void deleteJobReqDetails(List<Long> oldJobReqIds) throws Exception ;
+	public JobRequestDetailDTO getMemberJobReqDetailsById(ProfileRequest profileRequest) throws Exception;
+
 }

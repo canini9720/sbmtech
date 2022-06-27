@@ -91,6 +91,9 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=EmploymentEntity.class,cascade = CascadeType.ALL)
 	private List<EmploymentEntity> employmentList= new ArrayList<EmploymentEntity>();
 	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=JobRequestEntity.class,cascade = CascadeType.ALL)
+	private List<JobRequestEntity> jobRequestList= new ArrayList<JobRequestEntity>();
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -209,9 +212,21 @@ public class User {
 	public void setEmploymentList(List<EmploymentEntity> employmentList) {
 		this.employmentList = employmentList;
 	}
+	
+	public List<JobRequestEntity> getJobRequestList() {
+		return jobRequestList;
+	}
+	public void setJobRequestList(List<JobRequestEntity> jobRequestList) {
+		this.jobRequestList = jobRequestList;
+	}
 	public void addEmploymentDetail(EmploymentEntity empEntity) {
 		employmentList.add(empEntity);
 		empEntity.setUserEntity(this);
 	}
+	public void addJobRequestDetail(JobRequestEntity jobReqEntity) {
+		jobRequestList.add(jobReqEntity);
+		jobReqEntity.setUserEntity(this);
+	}
+	
 	
 }
