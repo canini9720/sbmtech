@@ -34,9 +34,9 @@ import com.sbmtech.service.EmailService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-@CrossOrigin(origins = "*", maxAge = 3600)
-@RestController
-@RequestMapping("/api/edu")
+//@CrossOrigin(origins = "*", maxAge = 3600)
+//@RestController
+//@RequestMapping("/api/edu")
 public class EducationController {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);

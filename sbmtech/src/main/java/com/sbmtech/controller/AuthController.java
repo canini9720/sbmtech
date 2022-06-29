@@ -117,7 +117,14 @@ public class AuthController {
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    
 	    if(!userDetails.isVerified()) {
-			ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
+			//ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
+	    	
+			JSONObject respObj = new JSONObject();
+			respObj.put("responseMessage", "notVerified");
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+			respObj.put("userId", CommonUtil.encrypt(CommonUtil.getStringValofObject(userDetails.getUserId()),secretKey));
+			return ResponseEntity.ok().body(respObj);
 		}
 	    String jwt = jwtUtils.generateJwtToken(userDetails);
 	    String sessionId=commonService.createSession(userDetails.getUserId());
