@@ -12,6 +12,8 @@ public class CommonResponse {
 	private Integer responseCode;
 	private String responseMessage;
 	private String responseDesc;
+	private Object  responseObj;
+	
 	public CommonResponse(){
 		
 	}

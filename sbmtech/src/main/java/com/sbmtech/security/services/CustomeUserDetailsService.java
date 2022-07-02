@@ -3,6 +3,7 @@ package com.sbmtech.security.services;
 import java.util.List;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
@@ -22,6 +23,7 @@ import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
@@ -63,5 +65,7 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public CommonResponse saveJobRequestDetails(JobRequest jobRequest)throws Exception;	
 	public void deleteJobReqDetails(List<Long> oldJobReqIds) throws Exception ;
 	public JobRequestDetailDTO getMemberJobReqDetailsById(ProfileRequest profileRequest) throws Exception;
+	
+	public CommonResponse saveExcelUpload(MultipartFile file)throws Exception;
 
 }

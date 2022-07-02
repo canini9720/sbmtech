@@ -29,6 +29,7 @@ public class User {
 	@Column(name="firstname")
 	private String firstname;
 	
+		
 	@Column(name="lastname")
 	private String lastname;
 	
@@ -53,6 +54,9 @@ public class User {
 	
 	@Column(name = "verified_date")
 	private Date verifiedDate;
+	
+	@Column(name="source")
+	private String source;
 	
 	
 	public User() {
@@ -125,6 +129,8 @@ public class User {
 	public void setFirstname(String firstname) {
 		this.firstname = firstname;
 	}
+	
+	
 	public String getLastname() {
 		return lastname;
 	}
@@ -192,6 +198,12 @@ public class User {
 		this.createdDate = createdDate;
 	}
 	
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
+	}
 	public void addDocumentDetail(DocumentEntity docEntity) {
 		documentList.add(docEntity);
 		docEntity.setUserEntity(this);

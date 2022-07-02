@@ -158,6 +158,11 @@ public class CommonUtil {
 	        			SimpleDateFormat sdf = new SimpleDateFormat(CommonConstants.DATE_ddMMyyyyHHmmss);
 					    strDate = sdf.format(dateToFormat);	
 	        		}
+	        		if(pattern.equalsIgnoreCase(CommonConstants.DATE_dd_MMM_yyyy)){
+	        			SimpleDateFormat format2 = new SimpleDateFormat(CommonConstants.DATE_dd_MMM_yyyy,Locale.ENGLISH);
+	     	            SimpleDateFormat format1 = new SimpleDateFormat(CommonConstants.DATE_ddMMyyyy,Locale.ENGLISH);
+	     	            strDate = format1.format(format2.parse(dateToFormat.toString()));
+	        		}
 	        		
 		           
 	        	}

@@ -2,13 +2,17 @@ package com.sbmtech.security.services;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -16,6 +20,10 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -27,11 +35,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.common.util.ExcelUploadUtil;
+import com.sbmtech.common.util.ValidationUtil;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDTO;
@@ -40,6 +51,7 @@ import com.sbmtech.dto.EduDTO;
 import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.EmploymentDTO;
 import com.sbmtech.dto.EmploymentDetailDTO;
+import com.sbmtech.dto.ExcelNewUserDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.JobReqWorkPaidDTO;
 import com.sbmtech.dto.JobReqWorkTimeDTO;
@@ -54,13 +66,16 @@ import com.sbmtech.dto.WorkPaidDTO;
 import com.sbmtech.dto.WorkTimeDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.DocumentEntity;
+import com.sbmtech.model.ERole;
 import com.sbmtech.model.EducationEntity;
 import com.sbmtech.model.EmploymentEntity;
+import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.JobReqPaidDetailEntity;
 import com.sbmtech.model.JobReqWorkTimeEntity;
 import com.sbmtech.model.JobRequestEntity;
 import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.MemberPersonalDetailEntity;
+import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
 import com.sbmtech.model.WorkPaidDetailEntity;
 import com.sbmtech.model.WorkTimeEntity;
@@ -70,6 +85,7 @@ import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
+import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -78,8 +94,10 @@ import com.sbmtech.payload.response.ProfileResponse;
 import com.sbmtech.repository.DocumentDetailRepository;
 import com.sbmtech.repository.EducationDetailRepository;
 import com.sbmtech.repository.EmploymentDetailRepository;
+import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.JobRequestDetailRepository;
 import com.sbmtech.repository.MemberContactRepository;
+import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.OTPService;
@@ -96,8 +114,16 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	private static String secretKey;
 	
+	
+	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	RoleRepository roleRepository;
+	
+	@Autowired
+	GDriveUserRepository gdriveRepository;
 	
 	@Autowired
 	MemberContactRepository mcRepository;
@@ -161,7 +187,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			user = userRepository.findByUsername(req.getUsername());
 		}
 		if((req.getType()==CommonConstants.INT_TWO) ) {
-			user=userRepository.getUserByEmailAndVerified(req.getEmail(),true);
+			user=userRepository.getUserByEmailAndVerified(req.getEmail(),false);
 			if(!user.isPresent()) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);
 			}
@@ -229,43 +255,6 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		return resp;
 	}
 
-/*
-	@Override
-	public CommonResponse savePersonalDetails(ProfileRequest profileRequest) throws Exception {
-		CommonResponse resp=null;
-		CustomeUserDetailsServiceUtil.validatePersonalDetialRequest(profileRequest,CommonConstants.SAVE);
-		User userDb=null;
-		PersonDetailDTO personalDetailsDTO=profileRequest.getPersonDetails();
-		List<ContactDTO> contactDetailsList=profileRequest.getContactDetails();
-		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
-		List<MemberContactDetailEntity>oldContactEntity= null;
-		if(userOp.isPresent()) {
-			User user=userOp.get();
-			oldContactEntity=user.getMemeberConactList();
-			oldContactEntity.forEach(o -> o.setActive(CommonConstants.INT_ZERO));
-			personalDetailsDTO.setUserId(profileRequest.getUserId());
-			
-			MemberPersonalDetailEntity personalDetialEntity=new MemberPersonalDetailEntity();
-			BeanUtils.copyProperties(personalDetailsDTO,personalDetialEntity);
-			user.setMemberPersonalDetailEntity(personalDetialEntity);
-			
-			
-			for(ContactDTO contDet:contactDetailsList) {
-				MemberContactDetailEntity contEnt=new MemberContactDetailEntity();
-				BeanUtils.copyProperties(contDet, contEnt);
-				contEnt.setActive(CommonConstants.INT_ONE);
-				contEnt.setUserEntity(user);
-				user.addContactDetail(contEnt);
-			}
-			
-			userDb=userRepository.saveAndFlush(user);
-			if(userDb!=null ) {
-				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
-			}
-		}
-		return resp;
-	}
-*/
 
 	@Override
 	public MemberDetailResponse getAllMemberDetails(int pageNo, int pageSize, String sortBy, String sortDir) {
@@ -447,6 +436,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			userDb=userRepository.saveAndFlush(user);
 			if(userDb!=null ) {
 				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+				resp.setResponseObj(userDb);
 			}
 		}
 		return resp;
@@ -485,6 +475,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
                         .map(MemberContactDetailEntity::getContId).collect(Collectors.toList());
 				deleteMemberContactDetails(oldContIds);
 				resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+				resp.setResponseObj(userDb);
 				
 			}
 		}
@@ -959,7 +950,196 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		return jobReqDetailDTO;
 	}
 
+	public void readExcel(InputStream excelFileToRead) {
+
+		try {
+			//excelFileToRead = new FileInputStream("F:\\Projects\\sbm\\requirements\\06-Jun-2022\\02-0-SST-Member Registration.xlsx");
+			XSSFWorkbook wb = new XSSFWorkbook(excelFileToRead);
+			XSSFSheet sheet = wb.getSheetAt(8);
+			XSSFRow row;
+			XSSFCell celldata;
+			Iterator rows = sheet.rowIterator();
+			int i=0;
+			String email="";
+			while (rows.hasNext()) {
+				row = (XSSFRow) rows.next();
+				if(i!=0 && i!=1) {
+					Iterator cells = row.cellIterator();
+					ExcelNewUserDTO excelDTO=new ExcelNewUserDTO();
+					PersonDetailDTO personDetails=new PersonDetailDTO();
+					excelDTO.setPersonDetails(personDetails);
+					while (cells.hasNext()) {
+						celldata = (XSSFCell) cells.next();
+						int emailIndex=celldata.getColumnIndex();
+						if(emailIndex==0 && StringUtils.isNotBlank(celldata.toString()) && !ValidationUtil.validateEmail(celldata.toString())) {
+							System.out.println("Row Id="+i+" , skipped=Email is wrong");
+							excelDTO=null;
+							break;
+						}else {
+							if(emailIndex==0) {
+								boolean emailExists=checkEmailIdExistsInDB(celldata.toString());
+								if(emailExists) {
+									email=celldata.toString();
+									break;
+								}else {
+									excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);
+								}
+							}else {
+								excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);
+							}
+							
+							
+						}
+						/*
+						switch (celldata.getCellType()) {
 	
+						case STRING:
+							System.out.print("str value=" + celldata.getStringCellValue());
+							break;
+						case NUMERIC:
+							System.out.print("num value=" + celldata.getNumericCellValue());
+							break;
+						case BOOLEAN:
+							System.out.print("boo value=" + celldata.getBooleanCellValue());
+							break;
+						}*/
+	
+					}
+					if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isNotBlank(excelDTO.getEmail())) {
+						
+						ProfileRequest profileRequest =new ProfileRequest();
+						BeanUtils.copyProperties(excelDTO, profileRequest);
+						excelDTO.setMemberCategory(CommonConstants.INT_ONE);
+						User newUser=saveNewUserFromExcel(excelDTO);
+						if(newUser!=null && newUser.getUserId()!=null) {
+							System.out.println(">>>>>> User Registered from Excel userDb="+newUser.getUserId()+" ,email="+excelDTO.getEmail());	
+						}
+						
+						profileRequest.setUserId(newUser.getUserId());
+						CommonResponse resp=this.saveMemberPersonalDetails(profileRequest);
+						profileRequest=ExcelUploadUtil.removeEmptyContactType(profileRequest);
+						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
+								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
+							User userDb=(User)resp.getResponseObj();
+							System.out.println(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());	
+						}
+						 resp=this.saveMemberContactDetails(profileRequest);
+						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
+								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
+							User userDb=(User)resp.getResponseObj();
+							System.out.println(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());	
+						}
+					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(excelDTO.getEmail())) {
+						System.out.println(">>>>>> User already in Db for email="+email);
+					}
+				}
+				i++;
+				System.out.println("=========================================");
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public User saveNewUserFromExcel(ExcelNewUserDTO excelDTO) {
+		User user = new User(excelDTO.getEmail(), 
+				excelDTO.getFirstname(),
+				excelDTO.getLastname(),
+				 1,
+				 "dummypwd",
+				 excelDTO.getEmail());
+		Set<String> strRoles = new HashSet<>();
+		Set<Role> roles = new HashSet<>();
+		if(excelDTO.getMemberCategory()==CommonConstants.INT_ONE_MEMBER) {
+			strRoles.add("member");
+		}else if(excelDTO.getMemberCategory()==CommonConstants.INT_TWO_GROUP) {
+			strRoles.add("group");
+		}else if(excelDTO.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY) {
+			strRoles.add("company");
+		}else {
+			strRoles.add("admin");
+		}
+		
+		strRoles.forEach(role -> {
+			switch (role) {
+			case "admin":
+				List<Role> adminRole = roleRepository.findAll();
+				roles.addAll(adminRole);
+				break;
+			case "member":
+				Role memRole = roleRepository.findByName(ERole.ROLE_MEMBER)
+						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				roles.add(memRole);
+				break;
+			case "group":
+				Role groupRole = roleRepository.findByName(ERole.ROLE_GROUP)
+						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				roles.add(groupRole);
+				break;
+			case "company":
+				Role companyRole = roleRepository.findByName(ERole.ROLE_COMPANY)
+						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				roles.add(companyRole);
+				break;	
+			default:
+				Role memDefRole = roleRepository.findByName(ERole.ROLE_MEMBER)
+						.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+				roles.add(memDefRole);
+			}
+		});
+		
+		user.setRoles(roles);
+		user.setEnabled(true);
+		user.setVerified(false);
+		user.setCreatedDate(new Date());
+		user.setSource(CommonConstants.SRC_EXCEL);
+		User dbUser=userRepository.saveAndFlush(user);
+		if(dbUser!=null) {
+			try {
+				String parentId=commonService.createUserFolder(String.valueOf(dbUser.getUserId()));
+				GDriveUser gdriveUser=new GDriveUser();
+				gdriveUser.setUserId(dbUser.getUserId());;
+				gdriveUser.setParentId(parentId);
+				gdriveRepository.save(gdriveUser);
+			}catch(Exception ex) {
+				loggerErr.error("Exception in GDrive folder creation in excel flow "+ex);
+			}
+			
+		}
+
+		return dbUser;
+
+		
+	}
+
+	
+	private boolean checkEmailIdExistsInDB(String email) {
+		Optional<User> userOp=userRepository.findByEmail(email);
+		if(userOp.isPresent()) {
+			return true;
+		}
+		return false;
+		/*
+		boolean isExists=false;
+		List<User> usersList=userRepository.findByEmail(email);
+		System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+		if(usersList!=null && !usersList.isEmpty()) {
+			isExists=true;
+			System.out.println(email +" is there");
+		}else {
+			System.out.println(email +" is not there");
+		}
+		return isExists;*/
+	}
+
+	@Override
+	public CommonResponse saveExcelUpload(MultipartFile file) throws Exception {
+		InputStream excelFileToRead=file.getInputStream();
+		readExcel(excelFileToRead);		
+		return null;
+	}
+
 
 	
 }

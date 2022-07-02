@@ -39,6 +39,7 @@ public class CommonConstants {
     public static final String DATE_yyyyMMdd = "yyyy/MM/dd";
     public static final String DATE_yyyy_MM_dd = "yyyy-MM-dd";
     public static final String DATE_dd_MMM_yy = "dd-MMM-yy";
+    public static final String DATE_dd_MMM_yyyy = "dd-MMM-yyyy";
     public static final String DATE_MMddyyyy_HH_MM = "MM-dd-YYYY hh:mm";
     public static final String DATE_yyyy_MM_dd_HH_mm_ss_SSS ="yyyy-MM-dd'T'HH:mm:ss.SSS";
     public static final String DATE_yyyy_MM_dd_HH_mm_ss ="yyyy-MM-dd HH:mm:ss";
@@ -56,6 +57,8 @@ public class CommonConstants {
     public  static final String DEFAULT_PAGE_SIZE = "2";
     public static final String DEFAULT_SORT_BY = "userId";
     public static final String DEFAULT_SORT_DIRECTION = "asc";
+    public static final String SRC_ONLINE = "online";
+    public static final String SRC_EXCEL = "excel";
     
 }
 

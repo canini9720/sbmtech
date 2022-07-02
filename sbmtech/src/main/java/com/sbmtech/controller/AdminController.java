@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
@@ -32,6 +33,7 @@ import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
@@ -416,4 +418,17 @@ public class AdminController {
 		}
 		  return gson.toJson(respObj);
 	 }
+	
+	@PostMapping(value="/excelUpload", consumes=MediaType.MULTIPART_FORM_DATA_VALUE, produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin)")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String excelUpload(@RequestParam("attachment") MultipartFile file) throws Exception{
+		
+		CommonResponse resp = userDetailsService.saveExcelUpload(file);
+		JSONObject respObj = new JSONObject();
+		respObj.put("response", resp);
+		
+		Gson gson = new Gson();
+        return gson.toJson(respObj);
+	}
 }
