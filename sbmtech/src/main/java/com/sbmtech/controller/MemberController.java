@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.EducationDetailDTO;
@@ -26,6 +27,7 @@ import com.sbmtech.dto.EmploymentDetailDTO;
 import com.sbmtech.dto.JobRequestDetailDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
@@ -406,6 +408,50 @@ public class MemberController {
 		JobRequestDetailDTO resp = userDetailsService.getMemberJobReqDetailsById(profileRequest);
 		if (resp != null) {
 			respObj.put("empDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	
+	
+
+	@PostMapping(value="saveMemberBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.member) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveMemberBankDetails(@RequestBody BankRequest bankRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp =null;
+		resp=userDetailsService.saveMemberBankDetails(bankRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
+	
+	
+	@GetMapping(value="getMemberBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.member) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getMemberBankDetails(@RequestParam(name = "userId", required = true) Long userId ) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		ProfileRequest profileRequest=new ProfileRequest();
+		profileRequest.setUserId(userId);
+		BankDetailDTO resp = userDetailsService.getMemberBankDetailsById(profileRequest);
+		if (resp != null) {
+			respObj.put("bankDetails", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		

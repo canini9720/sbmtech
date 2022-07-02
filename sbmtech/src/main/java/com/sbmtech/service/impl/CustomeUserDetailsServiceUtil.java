@@ -7,11 +7,13 @@ import org.apache.commons.lang.StringUtils;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.ValidationUtil;
+import com.sbmtech.dto.BankDTO;
 import com.sbmtech.dto.DocumentDTO;
 import com.sbmtech.dto.EduDTO;
 import com.sbmtech.dto.EmploymentDTO;
 import com.sbmtech.dto.JobRequestDTO;
 import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
@@ -35,6 +37,20 @@ public class CustomeUserDetailsServiceUtil {
 			
 		}
 		
+	}
+	
+	public static BankRequest validateSaveBankDetailsRequest(BankRequest req) throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("User Id", req.getUserId(), true);
+		List<BankDTO> listBankDto=req.getBankDetails();
+		if (listBankDto!=null) {
+			for (int i = 0; i < listBankDto.size(); i++) {
+				BankDTO bankDTO = listBankDto.get(i);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Account Name",bankDTO.getAcctName(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" Account No",bankDTO.getAcctNo(), true);
+				ExceptionUtil.throwNullOrEmptyValidationException("(" + (i + 1) + ")"+" IBAN",bankDTO.getIban(), true);
+			}
+		}
+		return req;
 	}
 
 	public static DocumentRequest validateSaveDocumentDetailsRequest(DocumentRequest req) throws Exception {

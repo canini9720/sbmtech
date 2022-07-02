@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.EducationDetailDTO;
@@ -15,6 +16,7 @@ import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
@@ -23,7 +25,6 @@ import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
-import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
@@ -67,5 +68,11 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public JobRequestDetailDTO getMemberJobReqDetailsById(ProfileRequest profileRequest) throws Exception;
 	
 	public CommonResponse saveExcelUpload(MultipartFile file)throws Exception;
+	
+	
+	public CommonResponse saveMemberBankDetails(BankRequest bankRequest)throws Exception;
+	public void deleteBankDetails(List<Long> oldCustBankIds) throws Exception ;
+	public BankDetailDTO getMemberBankDetailsById(ProfileRequest profileRequest) throws Exception;
+	
 
 }

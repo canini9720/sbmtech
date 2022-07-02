@@ -98,6 +98,9 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=JobRequestEntity.class,cascade = CascadeType.ALL)
 	private List<JobRequestEntity> jobRequestList= new ArrayList<JobRequestEntity>();
 	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=BankEntity.class,cascade = CascadeType.ALL)
+	private List<BankEntity> bankList= new ArrayList<BankEntity>();
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -204,6 +207,14 @@ public class User {
 	public void setSource(String source) {
 		this.source = source;
 	}
+	
+	
+	public List<BankEntity> getBankList() {
+		return bankList;
+	}
+	public void setBankList(List<BankEntity> bankList) {
+		this.bankList = bankList;
+	}
 	public void addDocumentDetail(DocumentEntity docEntity) {
 		documentList.add(docEntity);
 		docEntity.setUserEntity(this);
@@ -238,6 +249,10 @@ public class User {
 	public void addJobRequestDetail(JobRequestEntity jobReqEntity) {
 		jobRequestList.add(jobReqEntity);
 		jobReqEntity.setUserEntity(this);
+	}
+	public void addBankDetail(BankEntity bankEntity) {
+		bankList.add(bankEntity);
+		bankEntity.setUserEntity(this);
 	}
 	
 	

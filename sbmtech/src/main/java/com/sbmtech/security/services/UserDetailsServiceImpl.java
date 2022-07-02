@@ -43,6 +43,8 @@ import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.common.util.ExcelUploadUtil;
 import com.sbmtech.common.util.ValidationUtil;
+import com.sbmtech.dto.BankDTO;
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDTO;
@@ -65,6 +67,7 @@ import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.dto.WorkPaidDTO;
 import com.sbmtech.dto.WorkTimeDTO;
 import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.model.BankEntity;
 import com.sbmtech.model.DocumentEntity;
 import com.sbmtech.model.ERole;
 import com.sbmtech.model.EducationEntity;
@@ -79,18 +82,19 @@ import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
 import com.sbmtech.model.WorkPaidDetailEntity;
 import com.sbmtech.model.WorkTimeEntity;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
-import com.sbmtech.payload.request.SignupRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.payload.response.ProfileResponse;
+import com.sbmtech.repository.BankDetailRepository;
 import com.sbmtech.repository.DocumentDetailRepository;
 import com.sbmtech.repository.EducationDetailRepository;
 import com.sbmtech.repository.EmploymentDetailRepository;
@@ -140,6 +144,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	JobRequestDetailRepository jobReqRepository;
+	
+	@Autowired
+	BankDetailRepository bankRepository;
 	
 	@Autowired
 	OTPService otpService;
@@ -521,6 +528,14 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		
 	}
+	
+	@Override
+	public void deleteBankDetails(List<Long> oldCustBankIds) throws Exception {
+		if(oldCustBankIds!=null && !oldCustBankIds.isEmpty()) {
+			bankRepository.deleteBankDetailEntityByCustBankIds(oldCustBankIds);
+		}
+		
+	}
 
 	@Override
 	public ProfileCompleteStatusDTO getMemberProfileCompletionStatus(Long userId) throws Exception {
@@ -547,6 +562,10 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			List<EmploymentEntity> listEmploymentDetail=userOp.get().getEmploymentList();
 			if(listEmploymentDetail!=null && !listEmploymentDetail.isEmpty()) {
 				memProfstatus.setEmploymentDetail(true);
+			}
+			List<BankEntity> listBankDetail=userOp.get().getBankList();
+			if(listBankDetail!=null && !listBankDetail.isEmpty()) {
+				memProfstatus.setBankDetail(true);
 			}
 		}
 		return memProfstatus;
@@ -1138,6 +1157,81 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		InputStream excelFileToRead=file.getInputStream();
 		readExcel(excelFileToRead);		
 		return null;
+	}
+
+	@Override
+	public CommonResponse saveMemberBankDetails(BankRequest bankRequest) throws Exception {
+		CommonResponse resp=null;
+		User userDb=null;
+		BankRequest bankReq=CustomeUserDetailsServiceUtil.validateSaveBankDetailsRequest(bankRequest);
+		List<BankDTO> bankDetailsList=bankReq.getBankDetails();
+		Optional<User> userOp = userRepository.findById(bankReq.getUserId());
+		List<BankEntity>oldBankEntity= null;
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			oldBankEntity=user.getBankList();
+			if(oldBankEntity!=null && !oldBankEntity.isEmpty()) {
+				oldBankEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+					
+				});
+			}
+			
+			
+			if(bankDetailsList!=null && !bankDetailsList.isEmpty()) {
+				for(BankDTO bankDet:bankDetailsList) {
+					BankEntity bankEnt=new BankEntity();
+					bankDet.setUserId(bankReq.getUserId());
+					BeanUtils.copyProperties(bankDet, bankEnt);
+					bankEnt.setActive(CommonConstants.INT_ONE);
+					bankEnt.setCreatedDate(new Date());
+					bankEnt.setUserEntity(user);
+					user.addBankDetail(bankEnt); 
+					
+				}
+				
+				userDb=userRepository.saveAndFlush(user);
+				if(userDb!=null ) {
+					List<Long> oldBankIds = oldBankEntity.stream().filter(doc->doc.getActive()==0)
+	                        .map(BankEntity::getCustBankId).collect(Collectors.toList());
+					deleteBankDetails(oldBankIds);
+					
+					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+					
+				}
+			}
+		}
+		return resp;
+	}
+	
+	
+	@Override
+	public BankDetailDTO getMemberBankDetailsById(ProfileRequest profileRequest) throws Exception {
+		BankDetailDTO bankDetailDTO=null;
+		Optional<User> userOp = userRepository.findById(profileRequest.getUserId());
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			if(user.getBankList()!=null) {
+	    		List<BankDTO> asDto = user.getBankList().stream().filter(Objects::nonNull).map(new Function<BankEntity, BankDTO>() {
+	    		    @Override
+	    		    public BankDTO apply(BankEntity ent) {
+	    		    	BankDTO bankdto=null;
+	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
+	    		    		bankdto=new BankDTO();
+	    		    		BeanUtils.copyProperties(ent, bankdto);
+	    		    		
+	    		    	}
+	    		    	return bankdto;
+	    		    }
+	    		}).collect(Collectors.toList());
+	    		
+	    		asDto.removeAll(Collections.singleton(null));
+	    		bankDetailDTO=new BankDetailDTO();
+	    		bankDetailDTO.setBankDTO(asDto);
+	    		bankDetailDTO.setUserId(profileRequest.getUserId());
+	    	}
+		}
+		return bankDetailDTO;	
 	}
 
 
