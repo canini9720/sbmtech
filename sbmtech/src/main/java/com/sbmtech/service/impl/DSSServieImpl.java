@@ -5,12 +5,14 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sbmtech.model.BankMaster;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
 import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.PaidBasisMaster;
 import com.sbmtech.model.Role;
 import com.sbmtech.model.WorkTimeMaster;
+import com.sbmtech.repository.BankMasterRepository;
 import com.sbmtech.repository.BloodRepository;
 import com.sbmtech.repository.ContactTypeRepository;
 import com.sbmtech.repository.DocTypeRepository;
@@ -39,6 +41,9 @@ public class DSSServieImpl implements DSSService {
 	
 	@Autowired
 	PaidBasisMasterRepository paidBasisMasRepo;
+	
+	@Autowired
+	BankMasterRepository bankMasRepo;
 
 	@Override
 	public List<BloodGroup> getAllBloodGroup() throws Exception {
@@ -76,6 +81,12 @@ public class DSSServieImpl implements DSSService {
 	@Override
 	public List<PaidBasisMaster> getPaidBasisMaster()throws Exception{
 		List<PaidBasisMaster> list= paidBasisMasRepo.findByActive(1);
+		return list;
+	}
+
+	@Override
+	public List<BankMaster> getBankMaster() throws Exception {
+		List<BankMaster> list= bankMasRepo.findByActive(1);
 		return list;
 	}
 

@@ -34,8 +34,8 @@ import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
+import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
-import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
@@ -98,8 +98,6 @@ public class AdminController {
 		profileRequest.setUserId(userId);
 		UserRegistrationDetailDTO resp = userDetailsService.getMemberRegistrationDetailsById(profileRequest);
 		if (resp != null) {
-			resp.setVerified(null);
-			resp.setEnabled(null);
 			respObj.put("memberRegistrationDetailDTO", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
@@ -110,6 +108,25 @@ public class AdminController {
 		}
 		  return gson.toJson(respObj);
 	 }
+	
+	@PostMapping(value="saveMemberRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveMemberRegistrationDetails(@RequestBody UserRegRequest userRegRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp = userDetailsService.saveMemberRegistrationDetails(userRegRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	  }
 	
 	@GetMapping(value="getMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.admin) ")

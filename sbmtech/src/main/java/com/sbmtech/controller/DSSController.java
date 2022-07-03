@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sbmtech.model.BankMaster;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
 import com.sbmtech.model.DocTypeMaster;
@@ -76,6 +77,13 @@ public class DSSController {
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<PaidBasisMaster> getPaidBasisMaster() throws Exception {
 		return dssService.getPaidBasisMaster();
+	}
+	
+	@GetMapping("/getBankMaster")
+	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<BankMaster> getBankMaster() throws Exception {
+		return dssService.getBankMaster();
 	}
 
 

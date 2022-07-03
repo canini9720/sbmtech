@@ -23,6 +23,7 @@ import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
+import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -43,8 +44,9 @@ public interface CustomeUserDetailsService extends UserDetailsService {
 	public UserRegistrationDetailDTO getMemberRegistrationDetailsById( ProfileRequest profileRequest) throws Exception;
 	public PersonDetailDTO getMemberPersonalDetailsById( ProfileRequest profileRequest) throws Exception;
 	public ContactDetailDTO getMemberContactDetailsById( ProfileRequest profileRequest) throws Exception;
-	
 	public CommonResponse saveMemberPersonalDetails( ProfileRequest profileRequest) throws Exception;
+	
+	public CommonResponse saveMemberRegistrationDetails(UserRegRequest userRegRequest) throws Exception;
 	public CommonResponse saveMemberContactDetails( ProfileRequest profileRequest) throws Exception;
 	public void deleteMemberContactDetails(List<Long> ids) throws Exception;
 	public void deleteDocumentDetails(List<Long> oldDocIds) throws Exception;

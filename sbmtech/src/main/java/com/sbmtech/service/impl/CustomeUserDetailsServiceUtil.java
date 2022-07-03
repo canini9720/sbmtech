@@ -19,6 +19,7 @@ import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
+import com.sbmtech.payload.request.UserRegRequest;
 
 public class CustomeUserDetailsServiceUtil {
 
@@ -36,6 +37,17 @@ public class CustomeUserDetailsServiceUtil {
 			}
 			
 		}
+		
+	}
+	
+	public static void validateUserRegRequest(UserRegRequest req) throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("UserId", req.getUserId(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("email", req.getEmail(), true);
+		ExceptionUtil.throwInvalidEmailValException(req.getEmail(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("enabled", req.isEnabled(), true);
+		ExceptionUtil.throwNullOrEmptyValidationException("verfied", req.isVerified(), true);
+			
+		
 		
 	}
 	

@@ -89,6 +89,7 @@ import com.sbmtech.payload.request.EmploymentRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.ResetRequest;
+import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.request.VerifyUserRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.MemberDetailResponse;
@@ -370,6 +371,27 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return userRegistrationDetailDTO;
 	}
+	
+	@Override
+	public CommonResponse saveMemberRegistrationDetails(UserRegRequest req) throws Exception {
+		CommonResponse resp=null;
+		CustomeUserDetailsServiceUtil.validateUserRegRequest(req);
+		User user=this.getUserById(req.getUserId());
+		if(user!=null) {
+			
+			user.setFirstname(req.getFirstname());
+			user.setLastname(req.getLastname());
+			user.setEmail(req.getEmail());
+			user.setEnabled(req.isEnabled());
+			user.setVerified(req.isVerified());
+			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+			resp.setResponseObj(null);
+
+			
+		}
+		return resp;
+	}
+
 
 
 	@Override
@@ -974,7 +996,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		try {
 			//excelFileToRead = new FileInputStream("F:\\Projects\\sbm\\requirements\\06-Jun-2022\\02-0-SST-Member Registration.xlsx");
 			XSSFWorkbook wb = new XSSFWorkbook(excelFileToRead);
-			XSSFSheet sheet = wb.getSheetAt(8);
+			XSSFSheet sheet = wb.getSheetAt(7);
 			XSSFRow row;
 			XSSFCell celldata;
 			Iterator rows = sheet.rowIterator();
@@ -982,7 +1004,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			String email="";
 			while (rows.hasNext()) {
 				row = (XSSFRow) rows.next();
-				if(i!=0 && i!=1) {
+				if(i!=0 && i!=1 && i!=2) {
 					Iterator cells = row.cellIterator();
 					ExcelNewUserDTO excelDTO=new ExcelNewUserDTO();
 					PersonDetailDTO personDetails=new PersonDetailDTO();
@@ -990,12 +1012,12 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					while (cells.hasNext()) {
 						celldata = (XSSFCell) cells.next();
 						int emailIndex=celldata.getColumnIndex();
-						if(emailIndex==0 && StringUtils.isNotBlank(celldata.toString()) && !ValidationUtil.validateEmail(celldata.toString())) {
+						if(emailIndex==1 && StringUtils.isNotBlank(celldata.toString()) && !ValidationUtil.validateEmail(celldata.toString())) {
 							System.out.println("Row Id="+i+" , skipped=Email is wrong");
 							excelDTO=null;
 							break;
 						}else {
-							if(emailIndex==0) {
+							if(emailIndex==1) {
 								boolean emailExists=checkEmailIdExistsInDB(celldata.toString());
 								if(emailExists) {
 									email=celldata.toString();
@@ -1233,6 +1255,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		return bankDetailDTO;	
 	}
+
 
 
 	
