@@ -6,6 +6,7 @@ import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -111,6 +112,38 @@ public class AuthController {
 	
 	@PostMapping("/signin")
 	public ResponseEntity<?> signin(@Valid @RequestBody LoginRequest loginRequest)throws Exception {
+		
+		JSONObject respObj = new JSONObject();
+		
+		Optional<User> userOp=userRepository.findByUsername(loginRequest.getUsername());
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			if(!user.getVerified() && user.getSource().equals(CommonConstants.SRC_EXCEL)) {
+				VerifyUserRequest verifyReq=new VerifyUserRequest(user.getUsername(), user.getEmail(), null);
+				verifyReq = AuthServiceUtil.validateForgotPwd(verifyReq);
+				OtpDTO otp= userDetailsService.verifyUser(verifyReq);
+				if(otp!=null) {
+					respObj.put("message", "OTP sent to above emailId");
+					respObj.put("emailId", CommonUtil.maskEmail(otp.getEmail()));
+					respObj.put("verificationId", otp.getVerificationId());
+					respObj.put("encrypedId", CommonUtil.encrypt(CommonUtil.getStringValofObject(otp.getUserId()),secretKey));
+					respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+					respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+					return ResponseEntity.ok().body(respObj);
+				}
+				
+			}
+			if(!user.getEnabled() ) {
+				respObj.put("responseMessage", "deactivatedUser");
+				respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+				respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+				respObj.put("userId", CommonUtil.encrypt(CommonUtil.getStringValofObject(user.getUserId()),secretKey));
+				return ResponseEntity.ok().body(respObj);
+			}
+		}else {
+			
+			ExceptionUtil.throwException(ExceptionBusinessConstants.USER_NOT_FOUND, ExceptionUtil.EXCEPTION_BUSINESS);
+		}
 	    Authentication authentication = authenticationManager
 	        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 	    SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -119,7 +152,7 @@ public class AuthController {
 	    if(!userDetails.isVerified()) {
 			//ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
 	    	
-			JSONObject respObj = new JSONObject();
+			
 			respObj.put("responseMessage", "notVerified");
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));

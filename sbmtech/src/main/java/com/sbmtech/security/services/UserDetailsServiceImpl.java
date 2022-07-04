@@ -217,6 +217,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		}
 		if(user.isPresent() && isRequested) {
 			user.get().setPassword(encodedPwd);
+			user.get().setVerified(true);
 			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
 		} 
 		return resp;
