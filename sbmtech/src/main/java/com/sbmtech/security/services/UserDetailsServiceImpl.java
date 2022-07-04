@@ -115,6 +115,7 @@ import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
+	private static final Logger loggerExcel = Logger.getLogger(CommonConstants.LOGGER_SERVICES_EXCEL_INFO);
 	private static final Logger loggerErr = Logger.getLogger(CommonConstants.LOGGER_SERVICES_ERROR);
 	
 	private static String secretKey;
@@ -1015,6 +1016,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 						int emailIndex=celldata.getColumnIndex();
 						if(emailIndex==1 && StringUtils.isNotBlank(celldata.toString()) && !ValidationUtil.validateEmail(celldata.toString())) {
 							System.out.println("Row Id="+i+" , skipped=Email is wrong");
+							loggerExcel.info("Row Id="+i+" , skipped=Email is wrong");
 							excelDTO=null;
 							break;
 						}else {
@@ -1055,6 +1057,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 						User newUser=saveNewUserFromExcel(excelDTO);
 						if(newUser!=null && newUser.getUserId()!=null) {
 							System.out.println(">>>>>> User Registered from Excel userDb="+newUser.getUserId()+" ,email="+excelDTO.getEmail());	
+							loggerExcel.info(">>>>>> User Registered from Excel userDb="+newUser.getUserId()+" ,email="+excelDTO.getEmail());
 						}
 						
 						profileRequest.setUserId(newUser.getUserId());
@@ -1063,20 +1066,24 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
 								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
 							User userDb=(User)resp.getResponseObj();
-							System.out.println(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());	
+							System.out.println(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
+							loggerExcel.info(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 						}
 						 resp=this.saveMemberContactDetails(profileRequest);
 						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
 								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
 							User userDb=(User)resp.getResponseObj();
-							System.out.println(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());	
+							System.out.println(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
+							loggerExcel.info(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 						}
 					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(excelDTO.getEmail())) {
 						System.out.println(">>>>>> User already in Db for email="+email);
+						loggerExcel.info(">>>>>> User already in Db for email="+email);
 					}
 				}
 				i++;
-				System.out.println("=========================================");
+				System.out.println("Next Row =========================================");
+				loggerExcel.info("Next Row =========================================");
 			}
 
 		} catch (Exception ex) {

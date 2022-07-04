@@ -222,10 +222,13 @@ public class AuthController {
 		Set<Role> roles = new HashSet<>();
 		if(signUpRequest.getMemberCategory()==CommonConstants.INT_ONE_MEMBER) {
 			strRoles.add("member");
+			user.setEnabled(true);
 		}else if(signUpRequest.getMemberCategory()==CommonConstants.INT_TWO_GROUP) {
 			strRoles.add("group");
+			user.setEnabled(false);
 		}else if(signUpRequest.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY) {
 			strRoles.add("company");
+			user.setEnabled(false);
 		}else {
 			strRoles.add("admin");
 		}
@@ -259,7 +262,7 @@ public class AuthController {
 			});
 		
 		user.setRoles(roles);
-		user.setEnabled(true);
+		
 		user.setVerified(false);
 		user.setCreatedDate(new Date());
 		User dbUser=userRepository.save(user);

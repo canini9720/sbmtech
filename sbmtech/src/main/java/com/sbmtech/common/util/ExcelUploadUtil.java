@@ -613,17 +613,9 @@ public class ExcelUploadUtil {
 
 	public static ProfileRequest removeEmptyContactType(ProfileRequest profileRequest) {
 		List<ContactDTO> contactDetails=profileRequest.getContactDetails();
-		/*for(int i=0;i<contactDetails.size();i++) {
-			ContactDTO ct=contactDetails.get(i);
-			System.out.println("ct type="+ct.getContactType());
-			if((ct.getContactType()!=null && ct.getContactType()==0) || ct.getContactType()==null) {
-				contactDetails.remove(ct);
-			}
-		}*/
 		contactDetails.removeIf(x->(x.getContactType()!=null && x.getContactType()==0));
 		for(int i=0;i<contactDetails.size();i++) {
 			ContactDTO ct=contactDetails.get(i);
-			//System.out.println("ct type="+ct.getContactType());
 			if((ct.getContactType()!=null && ct.getContactType()==0) || ct.getContactType()==null) {
 				contactDetails.remove(ct);
 			}

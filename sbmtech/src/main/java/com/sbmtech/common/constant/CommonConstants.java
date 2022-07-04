@@ -25,6 +25,7 @@ public class CommonConstants {
     public static final String LOGGER_SERVICES_ERROR = "services";
 	public static final String LOGGER_SERVICES_INFO = "servicesinfo";
 	public static final String LOGGER_SERVICES_BRE = "servicesbre";
+	public static final String LOGGER_SERVICES_EXCEL_INFO= "excelupload";
 	
 	public static final String CHARSET_UTF8 = ";charset=" + "UTF-8";
 	public static final String[] ATTACHMENT_IMAGE_TYPES = {"image/jpeg", "image/png", "image/jpg","application/pdf"};
@@ -59,6 +60,8 @@ public class CommonConstants {
     public static final String DEFAULT_SORT_DIRECTION = "asc";
     public static final String SRC_ONLINE = "online";
     public static final String SRC_EXCEL = "excel";
+    public static final String SELF_SERVICE_COM = "https://selfserviceteam.com";
+    public static final String LOCALHOST_8080 = "https://localhost:8080";
     
 }
 
