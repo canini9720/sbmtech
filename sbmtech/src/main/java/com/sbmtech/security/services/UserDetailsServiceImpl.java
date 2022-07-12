@@ -627,6 +627,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					docEnt.setExpiry(CommonUtil.getDatefromString(docDet.getExpiry(), CommonConstants.DATE_ddMMyyyy));
 					docEnt.setCreatedDate(new Date());
 					docEnt.setUserEntity(user);
+					docEnt.setGoogleThumbnailLink(docDet.getThumbnailLink());
 					user.addDocumentDetail(docEnt);
 					
 				}
@@ -662,6 +663,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
 	    		    		document=new DocumentDTO();
 	    		    		BeanUtils.copyProperties(ent, document);
+	    		    		document.setThumbnailLink(ent.getGoogleThumbnailLink());
 	    		    		document.setExpiry(CommonUtil.getFormattedDate(ent.getExpiry()));
 	    		    	}
 	    		    	return document;
