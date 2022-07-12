@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -133,6 +134,15 @@ public class RestServicesExceptionHandler extends ResponseEntityExceptionHandler
 			json.put("responseCode", "0");
 			json.put("responseDesc", "User Account is Disabled");
 			return new ResponseEntity<Object>(json, HttpStatus.BAD_REQUEST);
+		}else if(ex instanceof DataIntegrityViolationException ){
+			System.out.println(ex.getCause());
+			if(ex.getMessage().contains("email_member_cat")) {
+				json=new JSONObject();
+				json.put("responseCode", "0");
+				json.put("responseDesc", "Email already taken");
+				return new ResponseEntity<Object>(json, HttpStatus.BAD_REQUEST);	
+			}
+			
 		}
 		
 		String errorMsg = getApplicationErrorMessage(ex);

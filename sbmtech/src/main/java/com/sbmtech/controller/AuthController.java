@@ -119,7 +119,10 @@ public class AuthController {
 		if(userOp.isPresent()) {
 			User user=userOp.get();
 			if(!user.getVerified() && user.getSource().equals(CommonConstants.SRC_EXCEL)) {
-				VerifyUserRequest verifyReq=new VerifyUserRequest(user.getUsername(), user.getEmail(), null);
+				VerifyUserRequest verifyReq=new VerifyUserRequest();
+				verifyReq.setUsername(user.getUsername());
+				verifyReq.setEmail(user.getEmail());
+				verifyReq.setMemberCategory(user.getMemberCategory());
 				verifyReq = AuthServiceUtil.validateForgotPwd(verifyReq);
 				OtpDTO otp= userDetailsService.verifyUser(verifyReq);
 				if(otp!=null) {
@@ -133,12 +136,27 @@ public class AuthController {
 				}
 				
 			}
-			if(!user.getEnabled() ) {
-				respObj.put("responseMessage", "deactivatedUser");
+			if(!user.getVerified() && (user.getMemberCategory()==CommonConstants.INT_TWO_GROUP ||  
+					user.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY)) {
+				respObj.put("responseMessage", "notVerified");
 				respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 				respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
 				respObj.put("userId", CommonUtil.encrypt(CommonUtil.getStringValofObject(user.getUserId()),secretKey));
 				return ResponseEntity.ok().body(respObj);
+			}else if(!user.getEnabled() && (user.getMemberCategory()==CommonConstants.INT_TWO_GROUP ||  
+					user.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY)) {
+				respObj.put("responseMessage", "deactivatedUser. Contact admin to activiate");
+				respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+				respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+				respObj.put("userId", CommonUtil.encrypt(CommonUtil.getStringValofObject(user.getUserId()),secretKey));
+				return ResponseEntity.ok().body(respObj);
+			}else if(!user.getEnabled()) {
+					respObj.put("responseMessage", "deactivatedUser");
+					respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+					respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+					respObj.put("userId", CommonUtil.encrypt(CommonUtil.getStringValofObject(user.getUserId()),secretKey));
+					return ResponseEntity.ok().body(respObj);
+				
 			}
 		}else {
 			
@@ -150,9 +168,6 @@ public class AuthController {
 	    UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 	    
 	    if(!userDetails.isVerified()) {
-			//ExceptionUtil.throwException(ExceptionBusinessConstants.USER_IS_NOT_VERIFIED, ExceptionUtil.EXCEPTION_BUSINESS);
-	    	
-			
 			respObj.put("responseMessage", "notVerified");
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
@@ -168,15 +183,7 @@ public class AuthController {
 	    return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), 
 	        userDetails.getUsername(), roles,profileCompleteDTO));
 	  }
-	/*
-	@PostMapping("/signOut")
-	public String signOut(@RequestBody SignoutRequest signoutRequest)throws Exception {
-	    
-	    commonService.signout(signoutRequest.getSessionId());
-	    
-	    return "";
-	  }
-	*/
+	
 	
 	  @PostMapping("/refreshtoken")
 	  public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
@@ -265,6 +272,7 @@ public class AuthController {
 		
 		user.setVerified(false);
 		user.setCreatedDate(new Date());
+		user.setSource(CommonConstants.SRC_ONLINE);
 		User dbUser=userRepository.save(user);
 		if(dbUser!=null) {
 			String parentId=commonService.createUserFolder(String.valueOf(dbUser.getUserId()));

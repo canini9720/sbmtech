@@ -196,7 +196,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			user = userRepository.findByUsername(req.getUsername());
 		}
 		if((req.getType()==CommonConstants.INT_TWO) ) {
-			user=userRepository.getUserByEmailAndVerified(req.getEmail(),false);
+			user=userRepository.getUserByEmailAndMemberCategory(req.getEmail(),req.getMemberCategory());
 			if(!user.isPresent()) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);
 			}

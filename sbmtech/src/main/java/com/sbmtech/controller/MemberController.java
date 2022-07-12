@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +42,7 @@ import com.sbmtech.repository.UserRepository;
 import com.sbmtech.security.jwt.JwtUtils;
 import com.sbmtech.security.services.CustomeUserDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
+import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
 
@@ -88,7 +91,10 @@ public class MemberController {
 	@GetMapping(value="getMemberRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserRegistrationDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
+	public String getUserRegistrationDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		loggerInfo.info("user info for from sec context==>"+userId);
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
@@ -111,9 +117,11 @@ public class MemberController {
 	@GetMapping(value="getMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberPersonalDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
+	public String  getMemberPersonalDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
 		PersonDetailDTO resp = userDetailsService. getMemberPersonalDetailsById(profileRequest);
@@ -132,8 +140,10 @@ public class MemberController {
 	@GetMapping(value="getMemberContactlDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberContactlDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
+	public String  getMemberContactlDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
 		Gson gson = new Gson();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
@@ -154,10 +164,12 @@ public class MemberController {
 	@PostMapping(value="saveMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
+	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest,@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		profileRequest.setUserId(userId);
 		CommonResponse resp = userDetailsService.saveMemberPersonalDetails(profileRequest);
 		if (resp != null) {
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
@@ -174,10 +186,13 @@ public class MemberController {
 	@PostMapping(value="saveMemberContactDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveMemberContactDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
+	public String saveMemberContactDetails(@RequestBody ProfileRequest profileRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		profileRequest.setUserId(userId);
 		CommonResponse resp = userDetailsService.saveMemberContactDetails(profileRequest);
 		if (resp != null) {
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
@@ -191,66 +206,19 @@ public class MemberController {
 	  }
 	
 	
-	/*
-	@GetMapping(value="getAllMemberDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole(@securityService.admin)")
-	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public String getAllMemberDetails(
-            @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
-            @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
-		Gson gson = new Gson();
-		JSONObject respObj = new JSONObject();
-		MemberDetailResponse resp= userDetailsService.getAllMemberDetails(pageNo, pageSize, sortBy, sortDir);
-		if (resp != null) {
-			respObj.put("getAllMemberDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
-		
-		}else{
-			respObj.put("getAllMemberDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
-		}
-		  return gson.toJson(respObj);
-    }
-	*/
-	/*
-	@GetMapping(value="getAllMemberRegDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole(@securityService.admin)")
-	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public String getAllMemberRegDetails(
-            @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
-            @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
-		Gson gson = new Gson();
-		JSONObject respObj = new JSONObject();
-		MemberRegDetailResponse resp= userDetailsService.getAllMemberRegDetails(pageNo, pageSize, sortBy, sortDir);
-		if (resp != null) {
-			respObj.put("getAllMemberRegDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
-		
-		}else{
-			respObj.put("getAllMemberRegDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
-		}
-		  return gson.toJson(respObj);
-    }
-	*/
 	
 	
 
 	@PostMapping(value="saveDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveDocumentDetails(@RequestBody DocumentRequest docRequest)throws Exception {
+	public String saveDocumentDetails(@RequestBody DocumentRequest docRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		docRequest.setUserId(userId);
 		CommonResponse resp =null;
 		resp=userDetailsService.saveDocumentDetails(docRequest);
 		if (resp != null) {
@@ -267,10 +235,12 @@ public class MemberController {
 	@GetMapping(value="getDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getDocumentDetails(@RequestParam(name = "userId", required = true) Long userId) throws Exception {
+	public String  getDocumentDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		profileRequest.setUserId(userId);
 		DocumentDetailDTO resp = userDetailsService.getDocumentDetailsById(profileRequest);
 		if (resp != null) {
@@ -291,10 +261,13 @@ public class MemberController {
 	@PostMapping(value="saveMemberEduDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveMemberEduDetails(@RequestBody EduRequest eduRequest)throws Exception {
+	public String saveMemberEduDetails(@RequestBody EduRequest eduRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		eduRequest.setUserId(userId);
 		CommonResponse resp =null;
 		resp=userDetailsService.saveEduDetails(eduRequest);
 		if (resp != null) {
@@ -311,9 +284,11 @@ public class MemberController {
 	@GetMapping(value="getMemberEduDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)  ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberEduDetails(@RequestParam(name = "userId", required = true) Long userId ) throws Exception {
+	public String  getMemberEduDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication ) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
 		EducationDetailDTO resp = userDetailsService.getMemberEduDetailsById(profileRequest);
@@ -334,10 +309,13 @@ public class MemberController {
 	@PostMapping(value="saveMemberEmpDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveMemberEmpDetails(@RequestBody EmploymentRequest employmentRequest)throws Exception {
+	public String saveMemberEmpDetails(@RequestBody EmploymentRequest employmentRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication )throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		employmentRequest.setUserId(userId);
 		CommonResponse resp =null;
 		resp=userDetailsService.saveEmploymentDetails(employmentRequest);
 		if (resp != null) {
@@ -356,10 +334,12 @@ public class MemberController {
 	@GetMapping(value="getMemberEmpDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberEmpDetails(@RequestParam(name = "userId", required = true) Long userId ) throws Exception {
+	public String  getMemberEmpDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication ) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		profileRequest.setUserId(userId);
 		EmploymentDetailDTO resp = userDetailsService.getMemberEmpDetailsById(profileRequest);
 		if (resp != null) {
@@ -378,10 +358,13 @@ public class MemberController {
 	@PostMapping(value="saveMemberJobReqDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveMemberJobReqDetails(@RequestBody JobRequest jobRequest)throws Exception {
+	public String saveMemberJobReqDetails(@RequestBody JobRequest jobRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		jobRequest.setUserId(userId);
 		CommonResponse resp =null;
 		resp=userDetailsService.saveJobRequestDetails(jobRequest);
 		if (resp != null) {
@@ -400,10 +383,12 @@ public class MemberController {
 	@GetMapping(value="getMemberJobReqDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberJobReqDetails(@RequestParam(name = "userId", required = true) Long userId ) throws Exception {
+	public String  getMemberJobReqDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication ) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		ProfileRequest profileRequest=new ProfileRequest();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		profileRequest.setUserId(userId);
 		JobRequestDetailDTO resp = userDetailsService.getMemberJobReqDetailsById(profileRequest);
 		if (resp != null) {
@@ -423,10 +408,13 @@ public class MemberController {
 	@PostMapping(value="saveMemberBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveMemberBankDetails(@RequestBody BankRequest bankRequest)throws Exception {
+	public String saveMemberBankDetails(@RequestBody BankRequest bankRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
-		
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		bankRequest.setUserId(userId);
 		CommonResponse resp =null;
 		resp=userDetailsService.saveMemberBankDetails(bankRequest);
 		if (resp != null) {
@@ -444,9 +432,11 @@ public class MemberController {
 	@GetMapping(value="getMemberBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.member) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String  getMemberBankDetails(@RequestParam(name = "userId", required = true) Long userId ) throws Exception {
+	public String  getMemberBankDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
 		ProfileRequest profileRequest=new ProfileRequest();
 		profileRequest.setUserId(userId);
 		BankDetailDTO resp = userDetailsService.getMemberBankDetailsById(profileRequest);
