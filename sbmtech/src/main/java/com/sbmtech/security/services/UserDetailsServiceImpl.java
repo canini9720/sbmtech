@@ -606,20 +606,25 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		if(userOp.isPresent()) {
 			User user=userOp.get();
 			oldDocumentEntity=user.getDocumentList();
-			if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
-				oldDocumentEntity.forEach(o -> {
-					o.setActive(CommonConstants.INT_ZERO);
-					try {
-						commonService.deleteFile(docReq.getUserId(), o.getDocTypeId());
-					} catch (Exception exp) {
-						loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
-					}
-				});
-			}
 			
 			
 			if(docDetailsList!=null && !docDetailsList.isEmpty()) {
 				for(DocumentDTO docDet:docDetailsList) {
+					if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
+						
+						oldDocumentEntity.forEach(o -> {
+							if(docDet.getDocTypeId()==o.getDocTypeId()) {
+								o.setActive(CommonConstants.INT_ZERO);
+								new Thread(() -> {
+									try {
+										commonService.deleteFileByGFileId(docReq.getUserId(), o.getDocTypeId(),o.getGoogleFileId());
+									} catch (Exception exp) {
+										loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+									}	
+								}).start();
+							}
+						});
+					}
 					DocumentEntity docEnt=new DocumentEntity();
 					docDet.setUserId(docReq.getUserId());
 					BeanUtils.copyProperties(docDet, docEnt);

@@ -69,6 +69,9 @@ public class MemberContactDetailEntity implements Serializable {
 	@Column(name="country")
 	private String country;
 	
+	@Column(name="union_terr")
+	private String union;
+	
 	@Column(name="pincode")
 	private String pinCode;
 	

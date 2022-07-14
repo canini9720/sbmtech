@@ -21,6 +21,7 @@ public interface CommonService {
 	public List<FileItemDTO> getAllFileByUserId(Long userId)throws Exception;
 	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId,Integer docTypeId)throws Exception;
 	public void deleteFile(Long userId, Integer docTypeId) throws Exception ;
+	public void deleteFileByGFileId(Long userId, Integer docTypeId,String gFileId) throws Exception ;
 	public List<FileItemDTO> getAllFileByUser(Long userId,Integer docTypeId)throws Exception;
 	public boolean checkTokenExist(HttpServletRequest request)throws Exception;
 

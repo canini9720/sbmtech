@@ -132,6 +132,24 @@ public class CommonServiceImpl implements CommonService {
 		    throw ex;
 		}
 	}
+	public void deleteFileByGFileId(Long userId, Integer docTypeId,String gFileId) throws Exception {
+		try {
+			GDriveUser gDriveUser = gDriveRepo.findById(userId).get();
+			String pageToken = null;
+			 FileList result = driveService.files().list()
+				      .setQ("parents in '"+gDriveUser.getParentId()+"' and id = '"+gFileId+"'")
+				      .setSpaces("drive")
+				      .setFields("nextPageToken, files(id, name)")
+				      .setPageToken(pageToken)
+				      .execute();
+	        for (File gFl : result.getFiles()){ 
+	        	String id = gFl.getId();
+	            driveService.files().delete(gFl.getId()).execute();
+	        } 
+		}catch (Exception ex) {
+		    throw ex;
+		}
+	}
 
 	@Override
 	public GDriveResponse saveFile(MultipartFile file,Long userId, Integer docTypeId) throws Exception {

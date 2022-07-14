@@ -24,6 +24,7 @@ public class ContactDTO {
 	private String district;
 	private String state;
 	private String country;
+	private String union;
 	private String pinCode;
 	private String poBox;
 	private String phone;
