@@ -40,4 +40,13 @@ public class DocTypeMaster implements Serializable {
 	@Column(name = "active")
 	private Integer active;
 	
+	
+	@Column(name = "for_mem_doc")
+	private Integer forMemDoc;
+	
+	@Column(name = "for_mem_doc_edu")
+	private Integer forMemDocEdu;
+	
+	
+	
 }

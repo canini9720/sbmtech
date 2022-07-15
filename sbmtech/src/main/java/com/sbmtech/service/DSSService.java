@@ -21,5 +21,7 @@ public interface DSSService {
 	public List<WorkTimeMaster> getWorkTimeMaster()throws Exception;
 	public List<PaidBasisMaster> getPaidBasisMaster()throws Exception;
 	public List<BankMaster> getBankMaster()throws Exception;
+	public List<DocTypeMaster> getMemDoc()throws Exception;
+	public List<DocTypeMaster> getMemEduDoc()throws Exception;
 	
 }

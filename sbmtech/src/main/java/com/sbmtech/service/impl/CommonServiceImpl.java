@@ -204,11 +204,14 @@ public class CommonServiceImpl implements CommonService {
 			              )
 			              .setFields("id").execute();
 			      
+			        java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+					String base64 =  new String(encoder.encode(file.getBytes()));
 			        gDriveResp=new GDriveResponse(CommonConstants.INT_ONE);
 			        gDriveResp.setGFileId(uploadFile.getId());
 			        gDriveResp.setDocTypeId(docTypeId);
 			        gDriveResp.setUserId(userId);
 			        gDriveResp.setContentType(contentType);
+			        gDriveResp.setBase64(base64);
 			     }
 			  } 
 			}catch (Exception ex) {

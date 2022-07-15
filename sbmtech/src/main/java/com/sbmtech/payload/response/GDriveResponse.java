@@ -15,6 +15,7 @@ public class GDriveResponse {
 	private Long userId;
 	private Integer docTypeId;
 	private String responseDesc;
+	private String base64;
 	public GDriveResponse(){
 		
 	}

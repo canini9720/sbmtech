@@ -12,5 +12,13 @@ public interface DocTypeRepository extends JpaRepository<DocTypeMaster, Integer>
 	
 	List<DocTypeMaster> findByForGroupCompanyAndActive(Integer forCompany,Integer active);
 
-	List<DocTypeMaster> findByActive(int i);	
+	List<DocTypeMaster> findByActive(int i);
+	
+	List<DocTypeMaster> findByForMemDocAndActive(Integer forDoc,Integer active);
+
+	List<DocTypeMaster> findByForMemDocAndActive(int forDoc, int active);
+	
+	List<DocTypeMaster> findByForMemDocEduAndActive(Integer forEduDoc,Integer active);
+	
+
 }

@@ -90,4 +90,15 @@ public class DSSServieImpl implements DSSService {
 		return list;
 	}
 
+	@Override
+	public List<DocTypeMaster> getMemDoc() throws Exception {
+		return  docTypeRepo.findByForMemDocAndActive(1,1);
+		
+	}
+
+	@Override
+	public List<DocTypeMaster> getMemEduDoc() throws Exception {
+		return docTypeRepo.findByForMemDocEduAndActive(1,1);
+	}
+
 }

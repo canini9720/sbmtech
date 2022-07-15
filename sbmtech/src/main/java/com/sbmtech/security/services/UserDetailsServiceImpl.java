@@ -619,7 +619,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 									try {
 										commonService.deleteFileByGFileId(docReq.getUserId(), o.getDocTypeId(),o.getGoogleFileId());
 									} catch (Exception exp) {
-										loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+										loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+", DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
 									}	
 								}).start();
 							}
@@ -673,7 +673,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 								gFile = commonService.getFileByUserIdAndDocTypeId(user.getUserId(),ent.getDocTypeId());
 		    		    		document.setBase64(gFile.getBase64String());
 							} catch (Exception exp) {
-								loggerErr.error("GDrive getDocumentDetailsById EXCEPTION --> USER_ID : "+profileRequest.getUserId()+"DocTypeId="+document.getDocTypeId() +", ErrorMSg --> "+exp);
+								loggerErr.error("GDrive getDocumentDetailsById EXCEPTION --> USER_ID : "+profileRequest.getUserId()+", DocTypeId="+document.getDocTypeId() +", ErrorMSg --> "+exp);
 							}
 
 	    		    	}
@@ -715,7 +715,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 								try {
 									commonService.deleteFileByGFileId(eduReq.getUserId(), o.getDocTypeId(),o.getGoogleFileId());
 								} catch (Exception exp) {
-									loggerErr.error("GDrive EXCEPTION --> USER_ID : "+eduReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+									loggerErr.error("GDrive EXCEPTION --> USER_ID : "+eduReq.getUserId()+", DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
 								}	
 								}).start();
 						});
