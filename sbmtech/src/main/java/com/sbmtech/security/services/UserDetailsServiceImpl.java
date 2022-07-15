@@ -632,7 +632,6 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					docEnt.setExpiry(CommonUtil.getDatefromString(docDet.getExpiry(), CommonConstants.DATE_ddMMyyyy));
 					docEnt.setCreatedDate(new Date());
 					docEnt.setUserEntity(user);
-					docEnt.setGoogleThumbnailLink(docDet.getThumbnailLink());
 					user.addDocumentDetail(docEnt);
 					
 				}
@@ -668,8 +667,15 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
 	    		    		document=new DocumentDTO();
 	    		    		BeanUtils.copyProperties(ent, document);
-	    		    		document.setThumbnailLink(ent.getGoogleThumbnailLink());
 	    		    		document.setExpiry(CommonUtil.getFormattedDate(ent.getExpiry()));
+	    		    		FileItemDTO gFile;
+							try {
+								gFile = commonService.getFileByUserIdAndDocTypeId(user.getUserId(),ent.getDocTypeId());
+		    		    		document.setBase64(gFile.getBase64String());
+							} catch (Exception exp) {
+								loggerErr.error("GDrive getDocumentDetailsById EXCEPTION --> USER_ID : "+profileRequest.getUserId()+"DocTypeId="+document.getDocTypeId() +", ErrorMSg --> "+exp);
+							}
+
 	    		    	}
 	    		    	return document;
 	    		    }
@@ -697,20 +703,23 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		if(userOp.isPresent()) {
 			User user=userOp.get();
 			oldEduEntity=user.getEducationList();
-			if(oldEduEntity!=null && !oldEduEntity.isEmpty()) {
-				oldEduEntity.forEach(o -> {
-					o.setActive(CommonConstants.INT_ZERO);
-					try {
-						commonService.deleteFile(eduReq.getUserId(), o.getDocTypeId());
-					} catch (Exception exp) {
-						loggerErr.error("GDrive EXCEPTION --> USER_ID : "+eduReq.getUserId()+" DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
-					}
-				});
-			}
+		
 			
 			
 			if(eduDetailsList!=null && !eduDetailsList.isEmpty()) {
 				for(EduDTO eduDet:eduDetailsList) {
+					if(oldEduEntity!=null && !oldEduEntity.isEmpty()) {
+						oldEduEntity.forEach(o -> {
+							o.setActive(CommonConstants.INT_ZERO);
+							new Thread(() -> {
+								try {
+									commonService.deleteFileByGFileId(eduReq.getUserId(), o.getDocTypeId(),o.getGoogleFileId());
+								} catch (Exception exp) {
+									loggerErr.error("GDrive EXCEPTION --> USER_ID : "+eduReq.getUserId()+"DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
+								}	
+								}).start();
+						});
+					}
 					EducationEntity eduEnt=new EducationEntity();
 					eduDet.setUserId(eduReq.getUserId());
 					BeanUtils.copyProperties(eduDet, eduEnt);
