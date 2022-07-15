@@ -50,8 +50,6 @@ public class DocumentEntity implements Serializable {
 	@Column(name = "g_drive_file_id")
 	private String googleFileId;
 	
-	@Column(name = "g_drive_thumbnail_link")
-	private String googleThumbnailLink;
 	
 	@Column(name = "content_type")
 	private String contentType;

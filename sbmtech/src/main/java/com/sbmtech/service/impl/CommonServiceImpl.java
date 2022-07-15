@@ -202,14 +202,13 @@ public class CommonServiceImpl implements CommonService {
 			                    file.getContentType(),
 			                    new ByteArrayInputStream(file.getBytes()))
 			              )
-			              .setFields("id,thumbnailLink").execute();
+			              .setFields("id").execute();
 			      
 			        gDriveResp=new GDriveResponse(CommonConstants.INT_ONE);
 			        gDriveResp.setGFileId(uploadFile.getId());
 			        gDriveResp.setDocTypeId(docTypeId);
 			        gDriveResp.setUserId(userId);
 			        gDriveResp.setContentType(contentType);
-			        gDriveResp.setThumbnailLink(  uploadFile.getThumbnailLink());
 			     }
 			  } 
 			}catch (Exception ex) {

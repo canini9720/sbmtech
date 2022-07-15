@@ -16,7 +16,6 @@ public class DocumentDTO {
 	
 	private String contentType;
 	private String googleFileId;
-	//private String thumbnailLink;
 	private Integer hasAttachment;
 	private Integer active;
 	
