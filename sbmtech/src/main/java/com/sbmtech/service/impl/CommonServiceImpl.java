@@ -155,8 +155,8 @@ public class CommonServiceImpl implements CommonService {
 	public GDriveResponse saveFile(MultipartFile file,Long userId, Integer docTypeId) throws Exception {
 		GDriveResponse gDriveResp=null;
 		try {
-			ExceptionUtil.throwNullOrEmptyValidationException("User Id", userId, true);
-			ExceptionUtil.throwNullOrEmptyValidationException("Doc Type Id", docTypeId, true);
+			validateRequest(file,userId,docTypeId);
+			
 			Optional<DocTypeMaster> docTypeMasterOp =docTypeRepo.findById(docTypeId);
 			if(!docTypeMasterOp.isPresent()) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_DOC_TYPE_ID, ExceptionUtil.EXCEPTION_VALIDATION);
@@ -222,6 +222,28 @@ public class CommonServiceImpl implements CommonService {
 	
 
 
+
+	private void validateRequest(MultipartFile file, Long userId, Integer docTypeId)throws Exception {
+		ExceptionUtil.throwNullOrEmptyValidationException("User Id", userId, true);
+		ExceptionUtil.throwNullOrEmptyValidationException("Doc Type Id", docTypeId, true);
+		
+		if(file!=null && file.getBytes()!=null && file.getBytes().length>0) {
+			String contentType = new Tika().detect(file.getBytes());
+			if(!Arrays.asList(CommonConstants.ATTACHMENT_TYPES).contains(contentType.toLowerCase())) {
+				ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_ATTACHMENT_TYPE, ExceptionUtil.EXCEPTION_VALIDATION);
+			}
+			
+			long size = file.getBytes() .length;
+			size=(size/1024)/1024;//MB
+			if(size>CommonConstants.FILE_SIZE) {
+				ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_ATTACHMENT_SIZE, ExceptionUtil.EXCEPTION_VALIDATION);
+			}
+		}else {
+			ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_ATTACHMENT, ExceptionUtil.EXCEPTION_VALIDATION);
+		}
+		
+		
+	}
 
 	@Override
 	public List<FileItemDTO> getAllFileByUserId(Long userId) throws Exception {

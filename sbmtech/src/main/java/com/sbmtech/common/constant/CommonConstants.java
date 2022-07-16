@@ -62,7 +62,8 @@ public class CommonConstants {
     public static final String SRC_EXCEL = "excel";
     public static final String SELF_SERVICE_COM = "https://selfserviceteam.com";
     public static final String LOCALHOST_8080 = "https://localhost:8080";
-    
+	public static final long FILE_SIZE = 2; //2MB
+	public static final String[] ATTACHMENT_TYPES = { "application/pdf","image/jpeg", "image/png", "image/jpg"};
 }
 
 

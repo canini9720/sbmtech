@@ -606,12 +606,19 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		if(userOp.isPresent()) {
 			User user=userOp.get();
 			oldDocumentEntity=user.getDocumentList();
-			
+			if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
+				List<Long> oldDocIds = oldDocumentEntity.stream().filter(doc->doc.getUserEntity().getUserId()==docReq.getUserId())
+                        .map(DocumentEntity::getDocId).collect(Collectors.toList());
+				System.out.println("old docids="+oldDocIds);
+				deleteDocumentDetails(oldDocIds);
+			}
 			
 			if(docDetailsList!=null && !docDetailsList.isEmpty()) {
+				
+				
 				for(DocumentDTO docDet:docDetailsList) {
 					if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
-						
+						/*
 						oldDocumentEntity.forEach(o -> {
 							if(docDet.getDocTypeId()==o.getDocTypeId()) {
 								o.setActive(CommonConstants.INT_ZERO);
@@ -623,7 +630,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 									}	
 								}).start();
 							}
-						});
+						});*/
 					}
 					DocumentEntity docEnt=new DocumentEntity();
 					docDet.setUserId(docReq.getUserId());

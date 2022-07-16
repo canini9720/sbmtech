@@ -49,7 +49,7 @@ public class DSSController {
 	public List<DocTypeMaster> getAllDocType() throws Exception {
 		return dssService.getAllDocType();
 	}
-	
+	/*
 	@GetMapping("/getMemDoc")
 	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
@@ -70,7 +70,7 @@ public class DSSController {
 	public List<DocTypeMaster> getDocTypeForCompany() throws Exception {
 		return dssService.getDocTypeForCompany();
 	}
-	
+	*/
 	@GetMapping("/getAllRole")
 	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))

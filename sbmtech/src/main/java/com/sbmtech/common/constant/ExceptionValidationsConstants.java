@@ -14,4 +14,6 @@ public class ExceptionValidationsConstants {
 	public static final String INVALID_MEMBER_CATEGORY = "2110";
 	public static final String INVALID_OTP = "2111";
 	public static final String INVALID_DOC_TYPE_ID = "2112";
+	public static final String INVALID_ATTACHMENT = "2113";
+	public static final String INVALID_ATTACHMENT_SIZE = "2114";
 }
