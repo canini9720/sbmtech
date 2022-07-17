@@ -101,6 +101,10 @@ public class User {
 	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=BankEntity.class,cascade = CascadeType.ALL)
 	private List<BankEntity> bankList= new ArrayList<BankEntity>();
 	
+	@OneToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
+	@JoinColumn(name="id", insertable=false, updatable=false)
+	private GroupDetailsEntity groupDetailsEntity;
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -253,6 +257,12 @@ public class User {
 	public void addBankDetail(BankEntity bankEntity) {
 		bankList.add(bankEntity);
 		bankEntity.setUserEntity(this);
+	}
+	public GroupDetailsEntity getGroupDetailsEntity() {
+		return groupDetailsEntity;
+	}
+	public void setGroupDetailsEntity(GroupDetailsEntity groupDetailsEntity) {
+		this.groupDetailsEntity = groupDetailsEntity;
 	}
 	
 	

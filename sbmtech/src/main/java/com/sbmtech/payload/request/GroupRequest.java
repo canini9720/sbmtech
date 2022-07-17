@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GroupRequest {
 	
-	private Long userId;
+	private Long groupId;
 	private GroupDetailDTO groupDetails;
 	
 	

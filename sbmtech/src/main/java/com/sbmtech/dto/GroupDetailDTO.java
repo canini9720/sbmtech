@@ -1,5 +1,7 @@
 package com.sbmtech.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,9 +11,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GroupDetailDTO {
 
-	private Long userId;
+	private Long groupId;
 	private String groupName;
+	private Long groupMgrId;
 	private String groupBranch;
 	private String groupPobox;
-	private Long groupContactNo;
+	private String groupContactNo;
+	private List<Long> partnersList;
 }
