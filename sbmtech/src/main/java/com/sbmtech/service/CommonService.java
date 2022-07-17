@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sbmtech.dto.ActiveMemberDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.exception.IntrusionException;
 import com.sbmtech.payload.response.GDriveResponse;
@@ -24,5 +25,6 @@ public interface CommonService {
 	public void deleteFileByGFileId(Long userId, Integer docTypeId,String gFileId) throws Exception ;
 	public List<FileItemDTO> getAllFileByUser(Long userId,Integer docTypeId)throws Exception;
 	public boolean checkTokenExist(HttpServletRequest request)throws Exception;
+	public List<ActiveMemberDTO> getAllActiveMembers()throws Exception;
 
 }

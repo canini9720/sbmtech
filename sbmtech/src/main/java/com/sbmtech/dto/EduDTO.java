@@ -18,6 +18,7 @@ public class EduDTO {
 	private String contentType;
 	private String googleFileId;
 	private Integer hasAttachment;
+	private String base64;
 	//private Integer active;
 	
 	

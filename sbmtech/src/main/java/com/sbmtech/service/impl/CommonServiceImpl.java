@@ -11,7 +11,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +23,7 @@ import javax.transaction.Transactional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.core.Authentication;
@@ -42,12 +46,16 @@ import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.constant.ExceptionBusinessConstants;
 import com.sbmtech.common.constant.ExceptionValidationsConstants;
+import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.common.util.SessionTokenGenerator;
+import com.sbmtech.dto.ActiveMemberDTO;
+import com.sbmtech.dto.EduDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.exception.IntrusionException;
 import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.ERole;
+import com.sbmtech.model.EducationEntity;
 import com.sbmtech.model.GDriveUser;
 import com.sbmtech.model.User;
 import com.sbmtech.model.UserSessionEntity;
@@ -490,6 +498,25 @@ public class CommonServiceImpl implements CommonService {
 	public void signout(String sessionId) throws Exception {
 		userSessionRepo.deleteUserSessionEntityBySessionToken(sessionId);
 		
+	}
+
+	@Override
+	public List<ActiveMemberDTO> getAllActiveMembers() throws Exception {
+		List<User> activeMembers=userRepository.getAllActiveMembers();
+		List<ActiveMemberDTO> asDto = activeMembers.stream().filter(Objects::nonNull).map(new Function<User, ActiveMemberDTO>() {
+		    @SuppressWarnings("deprecation")
+			@Override
+		    public ActiveMemberDTO apply(User userEnt) {
+		    	ActiveMemberDTO activeDto=null;
+	    		activeDto=new ActiveMemberDTO();
+	    		activeDto.setUserId(userEnt.getUserId());
+	    		activeDto.setMemberName(StringUtils.capitalise((userEnt.getFirstname()+" "+CommonUtil.getStringValofObject(userEnt.getLastname())).trim()));
+	    		
+	    		
+		    	return activeDto;
+		    }
+		}).collect(Collectors.toList());
+		return asDto;
 	}
 
 

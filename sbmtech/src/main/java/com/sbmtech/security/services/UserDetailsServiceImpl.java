@@ -59,6 +59,7 @@ import com.sbmtech.dto.JobReqWorkPaidDTO;
 import com.sbmtech.dto.JobReqWorkTimeDTO;
 import com.sbmtech.dto.JobRequestDTO;
 import com.sbmtech.dto.JobRequestDetailDTO;
+import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.OtpDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.ProfileCompleteStatusDTO;
@@ -105,6 +106,7 @@ import com.sbmtech.repository.MemberContactRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
+import com.sbmtech.service.NotificationService;
 import com.sbmtech.service.OTPService;
 import com.sbmtech.service.impl.AppSystemPropImpl;
 import com.sbmtech.service.impl.AuthServiceUtil;
@@ -149,6 +151,9 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	
 	@Autowired
 	BankDetailRepository bankRepository;
+	
+	@Autowired
+	NotificationService notificationService;
 	
 	@Autowired
 	OTPService otpService;
@@ -379,16 +384,32 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		CommonResponse resp=null;
 		CustomeUserDetailsServiceUtil.validateUserRegRequest(req);
 		User user=this.getUserById(req.getUserId());
+		boolean oldEnabled=user.getEnabled();
 		if(user!=null) {
 			
 			user.setFirstname(req.getFirstname());
 			user.setLastname(req.getLastname());
 			user.setEmail(req.getEmail());
 			user.setEnabled(req.isEnabled());
-			user.setVerified(req.isVerified());
+			//user.setVerified(req.isVerified());
 			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
 			resp.setResponseObj(null);
-
+			if(!oldEnabled && req.isEnabled()
+					&& (user.getMemberCategory()==CommonConstants.INT_TWO_GROUP ||user.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY)) {
+				NotifEmailDTO dto=new NotifEmailDTO();
+				dto.setEmailTo(req.getEmail());
+				dto.setSubject("Your Account has been Activated.");
+				dto.setCustomerName(req.getEmail());
+				
+				new  Thread(()->{
+					try {
+						notificationService.sendAcctActivationEmail(dto);
+					} catch (Exception e) {
+						loggerErr.error("SERVICE_SEND_OTP_EXCEPTION : "+req.getEmail(), e);
+					}
+				}).start();
+				
+			}
 			
 		}
 		return resp;
@@ -609,7 +630,6 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
 				List<Long> oldDocIds = oldDocumentEntity.stream().filter(doc->doc.getUserEntity().getUserId()==docReq.getUserId())
                         .map(DocumentEntity::getDocId).collect(Collectors.toList());
-				System.out.println("old docids="+oldDocIds);
 				deleteDocumentDetails(oldDocIds);
 			}
 			
@@ -647,7 +667,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 				if(userDb!=null ) {
 					List<Long> oldDocIds = oldDocumentEntity.stream().filter(doc->doc.getActive()==0)
 	                        .map(DocumentEntity::getDocId).collect(Collectors.toList());
-					deleteDocumentDetails(oldDocIds);
+					//deleteDocumentDetails(oldDocIds);
 					
 					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
 					
@@ -710,11 +730,16 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		if(userOp.isPresent()) {
 			User user=userOp.get();
 			oldEduEntity=user.getEducationList();
-		
+			if(oldEduEntity!=null && !oldEduEntity.isEmpty()) {
+				List<Long> oldDocIds = oldEduEntity.stream().filter(doc->doc.getUserEntity().getUserId()==eduRequest.getUserId())
+                        .map(EducationEntity::getEduId).collect(Collectors.toList());
+				deleteEducationDetails(oldDocIds);
+			}
 			
 			
 			if(eduDetailsList!=null && !eduDetailsList.isEmpty()) {
 				for(EduDTO eduDet:eduDetailsList) {
+					/*
 					if(oldEduEntity!=null && !oldEduEntity.isEmpty()) {
 						oldEduEntity.forEach(o -> {
 							o.setActive(CommonConstants.INT_ZERO);
@@ -726,7 +751,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 								}	
 								}).start();
 						});
-					}
+					}*/
 					EducationEntity eduEnt=new EducationEntity();
 					eduDet.setUserId(eduReq.getUserId());
 					BeanUtils.copyProperties(eduDet, eduEnt);
@@ -741,7 +766,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 				if(userDb!=null ) {
 					List<Long> oldDocIds = oldEduEntity.stream().filter(doc->doc.getActive()==0)
 	                        .map(EducationEntity::getEduId).collect(Collectors.toList());
-					deleteDocumentDetails(oldDocIds);
+					//deleteDocumentDetails(oldDocIds);
 					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
 				}
 			}
@@ -764,6 +789,13 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    		    	if(ent.getActive()==CommonConstants.INT_ONE) {
 	    		    		edudto=new EduDTO();
 	    		    		BeanUtils.copyProperties(ent, edudto);
+	    		    		FileItemDTO gFile;
+							try {
+								gFile = commonService.getFileByUserIdAndDocTypeId(user.getUserId(),ent.getDocTypeId());
+								edudto.setBase64(gFile.getBase64String());
+							} catch (Exception exp) {
+								loggerErr.error("GDrive getMemberEduDetailsById EXCEPTION --> USER_ID : "+profileRequest.getUserId()+", DocTypeId="+edudto.getDocTypeId() +", ErrorMSg --> "+exp);
+							}
 	    		    		
 	    		    	}
 	    		    	return edudto;

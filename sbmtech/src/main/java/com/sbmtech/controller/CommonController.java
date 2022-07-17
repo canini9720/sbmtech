@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.dto.ActiveMemberDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.payload.response.GDriveResponse;
 import com.sbmtech.service.CommonService;
@@ -66,26 +67,21 @@ public class CommonController {
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
-	/*
-	@GetMapping(value="/getUserAttachmentCloudTest",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole(@securityService.member)  or hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
+	
+	@GetMapping(value="/getAllActiveMembers",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String getUserAttachmentCloudTest(@RequestParam(name = "userId") Long userId,@RequestParam(name = "docTypeId") Integer docTypeId,HttpServletRequest request ) throws Exception{
-		//commonService.checkIntrusion(request);
-		List<FileItemDTO> listAllFiles = null;
-		Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-		UserDetailsImpl customUser = (UserDetailsImpl)auth.getPrincipal();
-		Long userId2 = customUser.getUserId();
-		listAllFiles=commonService.getAllFileByUser(userId,docTypeId);
+	public String getAllActiveMembers() throws Exception{
 		JSONObject respObj = new JSONObject();
-		if(listAllFiles!=null) {
-			respObj.put("userFiles", listAllFiles);	
+		List<ActiveMemberDTO> allActiveMembers=commonService.getAllActiveMembers();
+		if(allActiveMembers!=null && !allActiveMembers.isEmpty()) {
+			respObj.put("allMembers", allActiveMembers);	
 		}else {
-			respObj.put("userFiles", "No file Found");
+			respObj.put("allMembers", "Not Found");
 		}
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
-*/
+
 }
 

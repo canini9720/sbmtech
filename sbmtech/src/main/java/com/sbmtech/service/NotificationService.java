@@ -5,4 +5,5 @@ import com.sbmtech.payload.response.NotificationEmailResponseDTO;
 
 public interface NotificationService {
 	public NotificationEmailResponseDTO sendOTPEmail(NotifEmailDTO dto)throws Exception;
+	public NotificationEmailResponseDTO sendAcctActivationEmail(NotifEmailDTO dto)throws Exception;
 }
