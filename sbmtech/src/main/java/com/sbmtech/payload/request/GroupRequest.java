@@ -1,6 +1,6 @@
 package com.sbmtech.payload.request;
 
-import com.sbmtech.dto.GroupDetailDTO;
+import com.sbmtech.dto.GroupInfoDTO;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.Setter;
 public class GroupRequest {
 	
 	private Long groupId;
-	private GroupDetailDTO groupDetails;
+	private GroupInfoDTO groupDetails;
 	
 	
 

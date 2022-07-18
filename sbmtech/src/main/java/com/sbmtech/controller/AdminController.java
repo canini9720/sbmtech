@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,7 @@ import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.EducationDetailDTO;
 import com.sbmtech.dto.EmploymentDetailDTO;
+import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.JobRequestDetailDTO;
 import com.sbmtech.dto.PersonDetailDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
@@ -32,6 +35,7 @@ import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.UserRegRequest;
@@ -42,7 +46,9 @@ import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.security.jwt.JwtUtils;
 import com.sbmtech.security.services.CustomeUserDetailsService;
+import com.sbmtech.security.services.GroupDetailsService;
 import com.sbmtech.security.services.RefreshTokenService;
+import com.sbmtech.security.services.UserDetailsImpl;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.EmailService;
 
@@ -62,6 +68,9 @@ public class AdminController {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	GroupDetailsService groupDetailsService;
 	
 	@Autowired
 	GDriveUserRepository gdriveRepository;
@@ -211,31 +220,7 @@ public class AdminController {
 	  }
 	
 	
-	/*
-	@GetMapping(value="getAllMemberDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole(@securityService.admin)")
-	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public String getAllMemberDetails(
-            @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
-            @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
-		Gson gson = new Gson();
-		JSONObject respObj = new JSONObject();
-		MemberDetailResponse resp= userDetailsService.getAllMemberDetails(pageNo, pageSize, sortBy, sortDir);
-		if (resp != null) {
-			respObj.put("getAllMemberDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
-		
-		}else{
-			respObj.put("getAllMemberDetails", resp);
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
-		}
-		  return gson.toJson(respObj);
-    }
-	*/
+	
 	
 	@GetMapping(value="getAllMemberRegDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.admin)")
@@ -493,4 +478,52 @@ public class AdminController {
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
+	
+	
+
+	
+	@PostMapping(value="saveGroupDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin)")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupDetails(@RequestParam(name = "groupId", required = true) Long groupId)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		GroupRequest groupRequest=new GroupRequest();
+		groupRequest.setGroupId(groupId);
+		CommonResponse resp = groupDetailsService.saveGroupDetails(groupRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
+	
+	
+	@GetMapping(value="getGroupDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupDetails(@RequestParam(name = "groupId", required = true) Long groupId) throws Exception {
+		Gson gson = new Gson();
+		
+		GroupRequest groupRequest=new GroupRequest();
+		groupRequest.setGroupId(groupId);
+		JSONObject respObj = new JSONObject();
+		groupRequest.setGroupId(groupId);
+		GroupDetailDTO resp = groupDetailsService.getGroupDetailsById(groupRequest);
+		if (resp != null) {
+			respObj.put("groupDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+
 }

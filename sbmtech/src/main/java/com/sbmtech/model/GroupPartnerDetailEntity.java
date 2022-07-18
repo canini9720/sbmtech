@@ -31,7 +31,7 @@ public class GroupPartnerDetailEntity implements Serializable {
 	
 	
 	@Column(name="partner_id")
-	private Long partnetId;
+	private Long partnerId;
 		
 	
 	@Column(name="active")
