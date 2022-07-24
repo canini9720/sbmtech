@@ -14,8 +14,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "employment_work_paid_detail")
+
+//Not used
+//@Entity
+//@Table(name = "employment_work_paid_detail")
 @Setter
 @Getter
 @NoArgsConstructor
@@ -45,10 +47,10 @@ public class WorkPaidDetailEntity implements Serializable {
 	//PaidBasisMaster paidBasisMaster;
 	
 	
-	@OneToOne
-    @MapsId
-    @JoinColumn(name = "empt_work_paid_id")
-    private WorkTimeEntity workTimeEntity;
+	//@OneToOne
+   // @MapsId
+    //@JoinColumn(name = "empt_work_paid_id")
+    //private WorkTimeEntity workTimeEntity;
 	
 	
 	

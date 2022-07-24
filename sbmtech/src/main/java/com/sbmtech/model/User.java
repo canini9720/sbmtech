@@ -62,7 +62,7 @@ public class User {
 	public User() {
 	}
 	public User(String username, String firstname,String lastname, Integer memberCategory, String password,String email) {
-		this.username = username;
+		this.username = username.toLowerCase();
 		this.password = password;
 		this.firstname=firstname;
 		this.lastname=lastname;
@@ -115,7 +115,7 @@ public class User {
 		return username;
 	}
 	public void setUsername(String username) {
-		this.username = username;
+		this.username = username.toLowerCase();
 	}
 	
 	public String getPassword() {

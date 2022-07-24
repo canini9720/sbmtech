@@ -699,6 +699,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 							try {
 								gFile = commonService.getFileByUserIdAndDocTypeId(user.getUserId(),ent.getDocTypeId());
 		    		    		document.setBase64(gFile.getBase64String());
+		    		    		//System.out.println(gFile.getBase64String());
 							} catch (Exception exp) {
 								loggerErr.error("GDrive getDocumentDetailsById EXCEPTION --> USER_ID : "+profileRequest.getUserId()+", DocTypeId="+document.getDocTypeId() +", ErrorMSg --> "+exp);
 							}
@@ -845,16 +846,17 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					if(workTimeList!=null && !workTimeList.isEmpty()) {
 						for(WorkTimeDTO workTimeDto:workTimeList) {
 							WorkTimeEntity workEnt=new WorkTimeEntity();
-							WorkPaidDTO paidDTO=workTimeDto.getWorkPaidDetail();
+							/*WorkPaidDTO paidDTO=workTimeDto.getWorkPaidDetail();
 							if(paidDTO!=null) {
 								WorkPaidDetailEntity workPaidEnt=new WorkPaidDetailEntity();
 								BeanUtils.copyProperties(paidDTO, workPaidEnt);
 								workEnt.setWorkPaidDetailEntity(workPaidEnt);
 								workPaidEnt.setWorkTimeEntity(workEnt);
-							}
+							}*/
 							
 							
 							workEnt.setWorkTimeId(workTimeDto.getWorkTimeId());
+							BeanUtils.copyProperties(workTimeDto, workEnt);
 							workEnt.setEmploymentEntity(empEnt);
 							empEnt.addWorkTimeDetail(workEnt);
 						}
@@ -903,12 +905,12 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    			    		    	WorkTimeDTO workdto=null;
     			    		    		workdto=new WorkTimeDTO();
     			    		    		BeanUtils.copyProperties(workTimeEnt, workdto);
-    			    		    		WorkPaidDetailEntity paidEnt=workTimeEnt.getWorkPaidDetailEntity();
+    			    		    		/*WorkPaidDetailEntity paidEnt=workTimeEnt.getWorkPaidDetailEntity();
     			    		    		if(paidEnt!=null) {
     			    		    			WorkPaidDTO paidDto=new WorkPaidDTO();
     			    		    			BeanUtils.copyProperties(paidEnt, paidDto);
     			    		    			workdto.setWorkPaidDetail(paidDto);
-    			    		    		}
+    			    		    		}*/
 	    			    		    	return workdto;
 	    			    		    }
 	    			    		}).collect(Collectors.toList());
@@ -1131,6 +1133,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 							System.out.println(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 							loggerExcel.info(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 						}
+						
 					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(excelDTO.getEmail())) {
 						System.out.println(">>>>>> User already in Db for email="+email);
 						loggerExcel.info(">>>>>> User already in Db for email="+email);
@@ -1145,7 +1148,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			ex.printStackTrace();
 		}
 	}
-
+	@Transactional
 	public User saveNewUserFromExcel(ExcelNewUserDTO excelDTO) {
 		User user = new User(excelDTO.getEmail(), 
 				excelDTO.getFirstname(),
