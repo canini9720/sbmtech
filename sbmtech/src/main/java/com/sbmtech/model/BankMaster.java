@@ -34,6 +34,8 @@ public class BankMaster implements Serializable {
 	@Column(name = "name")
 	private String bankName;
 	
+	@Column(name = "native")
+	private Integer nativeBank;
 	
 	@Column(name = "active")
 	private Integer active;
