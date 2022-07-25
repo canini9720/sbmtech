@@ -10,6 +10,11 @@ import lombok.Setter;
 public class JobReqWorkTimeDTO {
 	
 	private Integer workTimeId;
-	private JobReqWorkPaidDTO  jobReqWorkPaidDetail;
+	//private JobReqWorkPaidDTO  jobReqWorkPaidDetail;
+	
+	//Newly Added
+	private Integer paidBasisId;
+	private Double amount;
+	private String currency;
 	
 }

@@ -47,7 +47,17 @@ public class JobReqWorkTimeEntity implements Serializable {
 	WorkTimeMaster workTimeMaster;
 	
 	
-	@OneToOne(mappedBy = "jobReqWorkTimeEntity", cascade = CascadeType.ALL ,fetch = FetchType.LAZY)
-    private JobReqPaidDetailEntity jobReqPaidDetailEntity;
+	@Column(name = "job_req_paid_basis_id")
+	private Integer paidBasisId;
+	
+
+	@Column(name = "amount")
+	private Double amount;
+	
+	
+	@Column(name = "currency")
+	private String currency;
+	//@OneToOne(mappedBy = "jobReqWorkTimeEntity", cascade = CascadeType.ALL ,fetch = FetchType.LAZY)
+    //private JobReqPaidDetailEntity jobReqPaidDetailEntity;
 	
 }

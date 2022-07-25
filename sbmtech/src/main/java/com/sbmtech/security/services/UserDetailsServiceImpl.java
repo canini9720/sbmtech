@@ -966,15 +966,17 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					if(workTimeList!=null && !workTimeList.isEmpty()) {
 						for(JobReqWorkTimeDTO workTimeDto:workTimeList) {
 							JobReqWorkTimeEntity workEnt=new JobReqWorkTimeEntity();
+							/*
 							JobReqWorkPaidDTO paidDTO=workTimeDto.getJobReqWorkPaidDetail();
 							if(paidDTO!=null) {
 								JobReqPaidDetailEntity workPaidEnt=new JobReqPaidDetailEntity();
 								BeanUtils.copyProperties(paidDTO, workPaidEnt);
 								workEnt.setJobReqPaidDetailEntity(workPaidEnt);
 								workPaidEnt.setJobReqWorkTimeEntity(workEnt);
-							}
+							}*/
 							
 							workEnt.setWorkTimeId(workTimeDto.getWorkTimeId());
+							BeanUtils.copyProperties(workTimeDto, workEnt);
 							workEnt.setJobRequestEntity(jobReqEnt);
 							jobReqEnt.addJobReqWorkTimeDetail(workEnt);
 						}
@@ -1022,12 +1024,12 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	    			    		    	JobReqWorkTimeDTO workdto=null;
     			    		    		workdto=new JobReqWorkTimeDTO();
     			    		    		BeanUtils.copyProperties(workTimeEnt, workdto);
-    			    		    		JobReqPaidDetailEntity paidEnt=workTimeEnt.getJobReqPaidDetailEntity();
+    			    		    		/*JobReqPaidDetailEntity paidEnt=workTimeEnt.getJobReqPaidDetailEntity();
     			    		    		if(paidEnt!=null) {
     			    		    			JobReqWorkPaidDTO paidDto=new JobReqWorkPaidDTO();
     			    		    			BeanUtils.copyProperties(paidEnt, paidDto);
     			    		    			workdto.setJobReqWorkPaidDetail(paidDto);
-    			    		    		}
+    			    		    		}*/
 	    			    		    	return workdto;
 	    			    		    }
 	    			    		}).collect(Collectors.toList());
