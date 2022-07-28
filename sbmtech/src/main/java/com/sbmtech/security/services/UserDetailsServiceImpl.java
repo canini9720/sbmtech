@@ -1113,6 +1113,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 						ProfileRequest profileRequest =new ProfileRequest();
 						BeanUtils.copyProperties(excelDTO, profileRequest);
 						excelDTO.setMemberCategory(CommonConstants.INT_ONE);
+						User userDb=null;
 						User newUser=saveNewUserFromExcel(excelDTO);
 						if(newUser!=null && newUser.getUserId()!=null) {
 							System.out.println(">>>>>> User Registered from Excel userDb="+newUser.getUserId()+" ,email="+excelDTO.getEmail());	
@@ -1124,17 +1125,31 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 						profileRequest=ExcelUploadUtil.removeEmptyContactType(profileRequest);
 						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
 								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
-							User userDb=(User)resp.getResponseObj();
+							userDb=(User)resp.getResponseObj();
 							System.out.println(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 							loggerExcel.info(">>>>>> User personal Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 						}
 						 resp=this.saveMemberContactDetails(profileRequest);
 						if(resp!=null && resp.getResponseCode()==CommonConstants.INT_ONE 
 								&& resp.getResponseObj()!=null && resp.getResponseObj() instanceof User) {
-							User userDb=(User)resp.getResponseObj();
+							userDb=(User)resp.getResponseObj();
 							System.out.println(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 							loggerExcel.info(">>>>>> User Contact Detail from Excel userDb="+userDb.getUserId()+" ,email="+excelDTO.getEmail());
 						}
+						final User userDbf=userDb;
+						new  Thread(()->{
+							try {
+								if(userDbf!=null) {
+									NotifEmailDTO dto=new NotifEmailDTO();
+									dto.setEmailTo(userDbf.getEmail());
+									dto.setSubject("Your Account has been Created.");
+									dto.setCustomerName(userDbf.getFirstname());
+									notificationService.sendExcelActivationEmail(dto);
+								}
+							} catch (Exception e) {
+								loggerErr.error("SERVICE_SEND_EXCEL_ACCT_CREATION_EXCEPTION : ", e);
+							}
+						}).start();
 						
 					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(excelDTO.getEmail())) {
 						System.out.println(">>>>>> User already in Db for email="+email);

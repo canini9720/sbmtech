@@ -58,4 +58,16 @@ public class NotificationUtil {
 		
 		return mergedContent.toString();
 	}
+	
+	public String prepareExcelActivationEmail(NotifEmailDTO dto){
+		
+		StringWriter mergedContent = new StringWriter();
+		VelocityContext velocityContext = new VelocityContext();
+		velocityContext.put("dataHolderDTO", dto);
+		
+		
+		velocityEngine.mergeTemplate(getNotifProperty(NotificationConstants.NOTIF_EXCEL_ACTIVE_TEMPLATE_KEY), "UTF-8", velocityContext, mergedContent);
+		
+		return mergedContent.toString();
+	}
 }
