@@ -64,6 +64,9 @@ public class CommonConstants {
     public static final String LOCALHOST_8080 = "https://localhost:8080";
 	public static final long FILE_SIZE = 2; //2MB
 	public static final String[] ATTACHMENT_TYPES = { "application/pdf","image/jpeg", "image/png", "image/jpg"};
+	public static final int MEMBER = 1;
+    public static final int GROUP = 2;
+    public static final int COMPANY = 3;
 }
 
 

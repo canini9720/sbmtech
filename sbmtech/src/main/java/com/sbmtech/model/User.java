@@ -59,6 +59,10 @@ public class User {
 	private String source;
 	
 	
+	@Column(name="notify_admin_newuser")
+	private Integer notifyAdminNewuser=1;
+	
+	
 	public User() {
 	}
 	public User(String username, String firstname,String lastname, Integer memberCategory, String password,String email) {
@@ -213,6 +217,12 @@ public class User {
 	}
 	
 	
+	public Integer getNotifyAdminNewuser() {
+		return notifyAdminNewuser;
+	}
+	public void setNotifyAdminNewuser(Integer notifyAdminNewuser) {
+		this.notifyAdminNewuser = notifyAdminNewuser;
+	}
 	public List<BankEntity> getBankList() {
 		return bankList;
 	}

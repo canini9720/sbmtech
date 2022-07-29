@@ -6,12 +6,15 @@ import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupRegDetailResponse;
+import com.sbmtech.payload.response.MemberRegDetailResponse;
 
 public interface GroupDetailsService extends UserDetailsService {
 
 	public User getUserById(Long userId) throws Exception;
 	public CommonResponse saveGroupDetails( GroupRequest groupRequest) throws Exception;
 	public GroupDetailDTO getGroupDetailsById(GroupRequest groupRequest) throws Exception ;
+	public GroupRegDetailResponse getAllGroupRegDetails(int pageNo, int pageSize, String sortBy, String sortDir);
 	
 
 

@@ -307,7 +307,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 		MemberRegDetailResponse memberRegDetailResponse=new MemberRegDetailResponse();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<User> pageUser = userRepository.findByMemberCategoryAndVerified(CommonConstants.INT_ONE,true ,pageable);
+        Page<User> pageUser = userRepository.findByMemberCategoryAndVerified(CommonConstants.MEMBER,true ,pageable);
 
         List<User> listOfPosts = pageUser.getContent();
         
@@ -392,6 +392,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 			user.setEmail(req.getEmail());
 			user.setEnabled(req.isEnabled());
 			//user.setVerified(req.isVerified());
+			user.setNotifyAdminNewuser(CommonConstants.INT_ZERO);
 			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
 			resp.setResponseObj(null);
 			if(!oldEnabled && req.isEnabled()

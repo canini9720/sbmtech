@@ -40,6 +40,7 @@ import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
@@ -503,6 +504,7 @@ public class AdminController {
 	}
 	
 	
+	
 	@GetMapping(value="getGroupDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.admin) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
@@ -525,5 +527,49 @@ public class AdminController {
 		}
 		  return gson.toJson(respObj);
 	 }
+	
+	@PostMapping(value="saveGroupRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupRegistrationDetails(@RequestBody UserRegRequest userRegRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp = userDetailsService.saveMemberRegistrationDetails(userRegRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	  }
+	
+	@GetMapping(value="getAllGroupRegDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getAllGroupRegDetails(
+            @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		GroupRegDetailResponse resp= groupDetailsService.getAllGroupRegDetails(pageNo, pageSize, sortBy, sortDir);
+		if (resp != null) {
+			respObj.put("getAllGroupRegDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put("getAllGroupRegDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	
 
 }

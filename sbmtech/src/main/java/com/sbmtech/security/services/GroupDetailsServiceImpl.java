@@ -17,6 +17,10 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -27,11 +31,14 @@ import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.GroupInfoDTO;
 import com.sbmtech.dto.PartnerDTO;
+import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.model.GroupDetailsEntity;
 import com.sbmtech.model.GroupPartnerDetailEntity;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupRegDetailResponse;
+import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
@@ -134,29 +141,28 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 				Optional<User> managerOp=userRepository.findByUserId(groupDetailsEntity.getGroupMgrId());
 				if(managerOp.isPresent()) {
 					User mangaerInfo=managerOp.get();
-					groupDetailDTO.setGroupMgrName(mangaerInfo.getFirstname());
+					groupDetailDTO.setGroupMgrName(mangaerInfo.getFirstname()+" "+mangaerInfo.getLastname());
 				}
 				
 	    		List<PartnerDTO> asDto = groupDetailsEntity.getGroupPartnerList().stream().filter(Objects::nonNull).map(new Function<GroupPartnerDetailEntity, PartnerDTO>() {
 	    		    @Override
 	    		    public PartnerDTO apply(GroupPartnerDetailEntity s) {
-	    		    	PartnerDTO contact=null;
+	    		    	PartnerDTO partnerDTO=null;
 	    		    	if(s.getActive()==CommonConstants.INT_ONE) {
-	    		    		contact=new PartnerDTO();
-	    		    		BeanUtils.copyProperties(s, contact);
+	    		    		partnerDTO=new PartnerDTO();
+	    		    		BeanUtils.copyProperties(s, partnerDTO);
 	    		    		Optional<User> partnerOp=userRepository.findByUserId(s.getPartnerId());
 	    					if(partnerOp.isPresent()) {
 	    						User partnerInfo=partnerOp.get();
-	    						contact.setPartnerId(s.getPartnerId());
-	    						contact.setPartnerName(partnerInfo.getFirstname());
+	    						partnerDTO.setPartnerId(s.getPartnerId());
+	    						partnerDTO.setPartnerName(partnerInfo.getFirstname()+" "+partnerInfo.getLastname());
 	    					}
 	    		    	}
-	    		    	return contact;
+	    		    	return partnerDTO;
 	    		    }
 	    		}).collect(Collectors.toList());
 	    		
 	    		asDto.removeAll(Collections.singleton(null));
-	    		//contactDetailDTO=new ContactDetailDTO();
 	    		groupDetailDTO.setPartnersList(asDto);
 	    		groupDetailDTO.setGroupId(groupRequest.getGroupId());
 
@@ -164,6 +170,40 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		}
 		return groupDetailDTO;
 	}
+
+	@Override
+	public GroupRegDetailResponse getAllGroupRegDetails(int pageNo, int pageSize, String sortBy, String sortDir) {
+
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+		List<UserRegistrationDetailDTO> userRegDetailDTO=null;
+		GroupRegDetailResponse groupRegDetailResponse=new GroupRegDetailResponse();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<User> pageUser = userRepository.findByMemberCategoryAndVerifiedAndNotifyAdminNewuser(CommonConstants.GROUP,true,CommonConstants.INT_ONE,pageable);
+
+        List<User> listOfPosts = pageUser.getContent();
+        
+        userRegDetailDTO= listOfPosts.stream().map(post -> mapToUserRegDTO(post)).collect(Collectors.toList());
+        if(userRegDetailDTO!=null && !userRegDetailDTO.isEmpty()) {
+        	groupRegDetailResponse.setUserRegDetailDTO(userRegDetailDTO);
+        	groupRegDetailResponse.setPageNo(pageUser.getNumber());
+        	groupRegDetailResponse.setPageSize(pageUser.getSize());
+        	groupRegDetailResponse.setTotalElements(pageUser.getTotalElements());
+        	groupRegDetailResponse.setTotalPages(pageUser.getTotalPages());
+        	groupRegDetailResponse.setLast(pageUser.isLast());
+        }
+
+        return groupRegDetailResponse;
+		
+	}
+	
+	private UserRegistrationDetailDTO mapToUserRegDTO(User user){
+		UserRegistrationDetailDTO userRegDetailDTO =    new UserRegistrationDetailDTO();
+    	BeanUtils.copyProperties(user, userRegDetailDTO);
+        return userRegDetailDTO;
+    }
 	
 	
 }
