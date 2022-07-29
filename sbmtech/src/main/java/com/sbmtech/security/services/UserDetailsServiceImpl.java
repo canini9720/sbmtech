@@ -1055,14 +1055,13 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 	public void readExcel(InputStream excelFileToRead) {
 
 		try {
-			//excelFileToRead = new FileInputStream("F:\\Projects\\sbm\\requirements\\06-Jun-2022\\02-0-SST-Member Registration.xlsx");
 			XSSFWorkbook wb = new XSSFWorkbook(excelFileToRead);
 			XSSFSheet sheet = wb.getSheetAt(7);
 			XSSFRow row;
 			XSSFCell celldata;
 			Iterator rows = sheet.rowIterator();
 			int i=0;
-			String email="";
+			//String email="";
 			while (rows.hasNext()) {
 				row = (XSSFRow) rows.next();
 				if(i!=0 && i!=1 && i!=2) {
@@ -1070,6 +1069,7 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					ExcelNewUserDTO excelDTO=new ExcelNewUserDTO();
 					PersonDetailDTO personDetails=new PersonDetailDTO();
 					excelDTO.setPersonDetails(personDetails);
+					String rowEmail="";
 					while (cells.hasNext()) {
 						celldata = (XSSFCell) cells.next();
 						int emailIndex=celldata.getColumnIndex();
@@ -1080,35 +1080,30 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 							break;
 						}else {
 							if(emailIndex==1) {
-								boolean emailExists=checkEmailIdExistsInDB(celldata.toString());
+								rowEmail=celldata.toString();
+								boolean emailExists=checkEmailIdExistsInDB(rowEmail);
 								if(emailExists) {
-									email=celldata.toString();
+									//email=celldata.toString();
+									excelDTO=null;
 									break;
 								}else {
-									excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);
+									if(StringUtils.isNotBlank(rowEmail)) {
+										excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);
+									}
 								}
 							}else {
-								excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);
+								if(StringUtils.isNotBlank(rowEmail)) {
+									excelDTO=ExcelUploadUtil.getCellValue(celldata,excelDTO);	
+								}
+								
 							}
 							
 							
 						}
-						/*
-						switch (celldata.getCellType()) {
-	
-						case STRING:
-							System.out.print("str value=" + celldata.getStringCellValue());
-							break;
-						case NUMERIC:
-							System.out.print("num value=" + celldata.getNumericCellValue());
-							break;
-						case BOOLEAN:
-							System.out.print("boo value=" + celldata.getBooleanCellValue());
-							break;
-						}*/
+						
 	
 					}
-					if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isNotBlank(excelDTO.getEmail())) {
+					if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isNotBlank(rowEmail)) {
 						
 						ProfileRequest profileRequest =new ProfileRequest();
 						BeanUtils.copyProperties(excelDTO, profileRequest);
@@ -1145,21 +1140,24 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 									dto.setSubject("Your Account has been Created.");
 									dto.setCustomerName(userDbf.getFirstname());
 									notificationService.sendExcelActivationEmail(dto);
+									loggerExcel.info(">>>>>> User Account has been Created userDb="+userDbf.getUserId()+" ,email="+userDbf.getEmail());
 								}
 							} catch (Exception e) {
 								loggerErr.error("SERVICE_SEND_EXCEL_ACCT_CREATION_EXCEPTION : ", e);
 							}
 						}).start();
 						
-					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(excelDTO.getEmail())) {
-						System.out.println(">>>>>> User already in Db for email="+email);
-						loggerExcel.info(">>>>>> User already in Db for email="+email);
+					}else if(excelDTO!=null && org.apache.commons.lang3.StringUtils.isBlank(rowEmail)) {
+						System.out.println(">>>>>> email is empty="+rowEmail+" , row="+i);
+						loggerExcel.info(">>>>>> email is empty="+rowEmail+" , row="+i);
 					}
 				}
 				i++;
 				System.out.println("Next Row =========================================");
 				loggerExcel.info("Next Row =========================================");
 			}
+			System.out.println("<<<<<<<<<<<<<<<<<< Excel upload done >>>>>>>>>>>>>>>>");
+			loggerExcel.info("<<<<<<<<<<<<<<<<<< Excel upload done >>>>>>>>>>>>>>>>");
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
