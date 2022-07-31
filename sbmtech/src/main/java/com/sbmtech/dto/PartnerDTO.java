@@ -11,4 +11,5 @@ public class PartnerDTO {
 
 	private Long partnerId;
 	private String partnerName;
+	private String photo64;
 }

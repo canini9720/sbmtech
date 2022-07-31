@@ -74,6 +74,7 @@ import com.sbmtech.service.CommonService;
 public class CommonServiceImpl implements CommonService {
 	
 	private static final Logger loggerInfo = Logger.getLogger(CommonConstants.LOGGER_SERVICES_INFO);
+	private static final Logger loggerErr = Logger.getLogger(CommonConstants.LOGGER_SERVICES_ERROR);
 
 	
 	private String gdriveFilePath="";
@@ -405,32 +406,33 @@ public class CommonServiceImpl implements CommonService {
 
 
 	@Override
-	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId, Integer docTypeId) throws Exception {
+	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId, Integer docTypeId) {
 		FileItemDTO item=null;
 		List<DocTypeMaster> allDocType=docTypeRepo.findAll();	
 		GDriveUser gDriveUser =gDriveRepo.findById(userId).get();
 		String userFolderId = gDriveUser.getParentId();
+		try {
 		File gFile=getFileByName(userFolderId,String.valueOf(docTypeId));
-		if(gFile!=null) {	
-			item = new FileItemDTO();
-			item.setId(gFile.getId());
-			item.setName(gFile.getName());
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			
-			driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
-			
-	
-			java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
-			String base64 =  new String(encoder.encode(outputStream.toByteArray()));
-			item.setBase64String(base64);
-			
-			for(DocTypeMaster docType:allDocType) {
-				if(gFile.getName().equals(String.valueOf(docType.getDocTypeId()))) {
-					item.setDocTypeId(docType.getDocTypeId());
-					item.setDocTypeDesc(docType.getFileDesc());
-					break;
+			if(gFile!=null) {	
+				item = new FileItemDTO();
+				item.setId(gFile.getId());
+				item.setName(gFile.getName());
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				
+				driveService.files().get(gFile.getId()).executeMediaAndDownloadTo(outputStream);
+				java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+				String base64 =  new String(encoder.encode(outputStream.toByteArray()));
+				item.setBase64String(base64);
+				for(DocTypeMaster docType:allDocType) {
+					if(gFile.getName().equals(String.valueOf(docType.getDocTypeId()))) {
+						item.setDocTypeId(docType.getDocTypeId());
+						item.setDocTypeDesc(docType.getFileDesc());
+						break;
+					}
 				}
 			}
+		} catch (Exception ex) {
+			loggerErr.error("getFileByUserIdAndDocTypeId userId="+userId+", docid="+docTypeId,ex);
 		}
 		return item;	
 	}
@@ -511,8 +513,12 @@ public class CommonServiceImpl implements CommonService {
 	    		activeDto=new ActiveMemberDTO();
 	    		activeDto.setUserId(userEnt.getUserId());
 	    		activeDto.setMemberName(StringUtils.capitalise((userEnt.getFirstname()+" "+CommonUtil.getStringValofObject(userEnt.getLastname())).trim()));
-	    		
-	    		
+	    		/*
+	    		FileItemDTO photoDTO=getFileByUserIdAndDocTypeId(userEnt.getUserId(), CommonConstants.INT_ONE);
+				if(photoDTO!=null && StringUtils.isNotBlank(photoDTO.getBase64String())) {
+					activeDto.setPhoto64(photoDTO.getBase64String());
+				}
+	    		*/
 		    	return activeDto;
 		    }
 		}).collect(Collectors.toList());

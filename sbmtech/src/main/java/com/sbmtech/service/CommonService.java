@@ -20,7 +20,7 @@ public interface CommonService {
 	public String createUserFolder(String userId) throws Exception ;
 	public GDriveResponse saveFile(MultipartFile file,Long userId,Integer docTypeId)throws Exception;
 	public List<FileItemDTO> getAllFileByUserId(Long userId)throws Exception;
-	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId,Integer docTypeId)throws Exception;
+	public FileItemDTO getFileByUserIdAndDocTypeId(Long userId,Integer docTypeId);
 	public void deleteFile(Long userId, Integer docTypeId) throws Exception ;
 	public void deleteFileByGFileId(Long userId, Integer docTypeId,String gFileId) throws Exception ;
 	public List<FileItemDTO> getAllFileByUser(Long userId,Integer docTypeId)throws Exception;

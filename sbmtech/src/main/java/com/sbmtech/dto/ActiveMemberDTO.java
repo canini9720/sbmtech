@@ -9,6 +9,7 @@ public class ActiveMemberDTO {
 		
 	private Long userId;
 	private String memberName;
+	private String photo64;
 	
 	
 	

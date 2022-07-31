@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.GroupInfoDTO;
 import com.sbmtech.dto.PartnerDTO;
@@ -156,6 +158,10 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	    						User partnerInfo=partnerOp.get();
 	    						partnerDTO.setPartnerId(s.getPartnerId());
 	    						partnerDTO.setPartnerName(partnerInfo.getFirstname()+" "+partnerInfo.getLastname());
+	    						FileItemDTO photoDTO=commonService.getFileByUserIdAndDocTypeId(s.getPartnerId(), CommonConstants.INT_ONE);
+	    						if(photoDTO!=null && StringUtils.isNotBlank(photoDTO.getBase64String())) {
+	    							partnerDTO.setPhoto64(photoDTO.getBase64String());
+	    						}
 	    					}
 	    		    	}
 	    		    	return partnerDTO;
