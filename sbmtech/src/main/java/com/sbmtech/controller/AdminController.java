@@ -35,6 +35,7 @@ import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
@@ -531,11 +532,11 @@ public class AdminController {
 	@PostMapping(value="saveGroupRegistrationDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.admin) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String saveGroupRegistrationDetails(@RequestBody UserRegRequest userRegRequest)throws Exception {
+	public String saveGroupRegistrationDetails(@RequestBody GroupRegRequest groupRegRequest)throws Exception {
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		
-		CommonResponse resp = userDetailsService.saveMemberRegistrationDetails(userRegRequest);
+		CommonResponse resp = groupDetailsService.saveGroupRegistrationDetails(groupRegRequest);
 		if (resp != null) {
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
@@ -554,7 +555,7 @@ public class AdminController {
             @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
             @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
-            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
+            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir)throws Exception{
 		Gson gson = new Gson();
 		JSONObject respObj = new JSONObject();
 		GroupRegDetailResponse resp= groupDetailsService.getAllGroupRegDetails(pageNo, pageSize, sortBy, sortDir);
@@ -571,5 +572,29 @@ public class AdminController {
 		  return gson.toJson(respObj);
 	 }
 	
+	//Used to get only Newly registered Group member
+	@GetMapping(value="getNewGroupRegDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getNewGroupRegDetails(
+            @RequestParam(value = "pageNo", defaultValue = CommonConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = CommonConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = CommonConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = CommonConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir)throws Exception{
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		GroupRegDetailResponse resp= groupDetailsService.getNewGroupRegDetails(pageNo, pageSize, sortBy, sortDir);
+		if (resp != null) {
+			respObj.put("getNewGroupRegDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put("getNewGroupRegDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
 
 }

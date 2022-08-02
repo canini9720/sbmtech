@@ -1,5 +1,9 @@
 package com.sbmtech.dto;
 
+import java.util.Set;
+
+import com.sbmtech.model.Role;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +19,6 @@ public class UserRegistrationDetailDTO {
 	private String email;
 	private Boolean enabled;
 	private Boolean verified;
-	
+	private Set<Role> roles;
 	
 }

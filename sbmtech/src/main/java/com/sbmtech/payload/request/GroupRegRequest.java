@@ -1,15 +1,17 @@
 package com.sbmtech.payload.request;
 
+import java.util.Set;
+
+import com.sbmtech.model.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
-public class UserRegRequest {
+public class GroupRegRequest {
 
 	private Long userId;
 	private String firstname;
@@ -17,6 +19,7 @@ public class UserRegRequest {
 	private String email;
 	private boolean enabled;
 	private boolean verified;
+	private Set<Role> roles;
 
 	
 }

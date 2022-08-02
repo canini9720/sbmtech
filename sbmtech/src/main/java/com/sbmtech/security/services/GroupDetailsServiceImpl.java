@@ -28,16 +28,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.GroupInfoDTO;
+import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.PartnerDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.model.GroupDetailsEntity;
 import com.sbmtech.model.GroupPartnerDetailEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
+import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
@@ -45,8 +49,10 @@ import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
+import com.sbmtech.service.NotificationService;
 import com.sbmtech.service.OTPService;
 import com.sbmtech.service.impl.AppSystemPropImpl;
+import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 import com.sbmtech.service.impl.GroupDetailsServiceUtil;
 @Service
 @Transactional
@@ -70,13 +76,18 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	@Autowired
 	GDriveUserRepository gdriveRepository;
 	
-
+	@Autowired
+	NotificationService notificationService;
+	
 	
 	@Autowired
 	OTPService otpService;
 	
 	@Autowired
 	CommonService commonService;
+	
+	@Autowired
+	CustomeUserDetailsService userDetailsService;
 	
 	@PostConstruct
 	public void initialize() throws GeneralSecurityException, IOException {
@@ -88,12 +99,6 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 		return UserDetailsImpl.build(user);
-	}
-
-	@Override
-	public User getUserById(Long userId) throws Exception {
-		
-		return null;
 	}
 
 	@Override
@@ -187,7 +192,9 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		GroupRegDetailResponse groupRegDetailResponse=new GroupRegDetailResponse();
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        Page<User> pageUser = userRepository.findByMemberCategoryAndVerifiedAndNotifyAdminNewuser(CommonConstants.GROUP,true,CommonConstants.INT_ONE,pageable);
+        //Page<User> pageUser = userRepository.findByMemberCategoryAndVerifiedAndNotifyAdminNewuser(CommonConstants.GROUP,true,CommonConstants.INT_ZERO,pageable);
+        Page<User> pageUser = userRepository.findByMemberCategoryAndVerified(CommonConstants.GROUP,true,pageable);
+        
 
         List<User> listOfPosts = pageUser.getContent();
         
@@ -208,8 +215,74 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	private UserRegistrationDetailDTO mapToUserRegDTO(User user){
 		UserRegistrationDetailDTO userRegDetailDTO =    new UserRegistrationDetailDTO();
     	BeanUtils.copyProperties(user, userRegDetailDTO);
+    	userRegDetailDTO.setRoles(user.getRoles());
         return userRegDetailDTO;
     }
+
+	@Override
+	public CommonResponse saveGroupRegistrationDetails(GroupRegRequest groupRegRequest) throws Exception {
+		CommonResponse resp = null;
+		UserRegRequest req=new UserRegRequest();
+		BeanUtils.copyProperties(groupRegRequest, req);
+		CustomeUserDetailsServiceUtil.validateUserRegRequest(req);
+		User user = userDetailsService.getUserById(CommonUtil.getLongValofObject(req.getUserId()));
+		boolean oldEnabled = user.getEnabled();
+		if (user != null) {
+
+			user.setFirstname(req.getFirstname());
+			user.setLastname(req.getLastname());
+			user.setEmail(req.getEmail());
+			user.setEnabled(req.isEnabled());
+			user.setVerified(req.isVerified());
+			user.setNotifyAdminNewuser(CommonConstants.INT_ZERO);
+			user.setRoles(groupRegRequest.getRoles());
+			resp = new CommonResponse(CommonConstants.SUCCESS_CODE);
+			resp.setResponseObj(null);
+			if (!oldEnabled && req.isEnabled() && (user.getMemberCategory() == CommonConstants.INT_TWO_GROUP
+					|| user.getMemberCategory() == CommonConstants.INT_THREE_COMPNAY)) {
+				NotifEmailDTO dto = new NotifEmailDTO();
+				dto.setEmailTo(req.getEmail());
+				dto.setSubject("Your Account has been Activated.");
+				dto.setCustomerName(req.getEmail());
+
+				new Thread(() -> {
+					try {
+						notificationService.sendAcctActivationEmail(dto);
+					} catch (Exception e) {
+						loggerErr.error("SERVICE_SEND_OTP_EXCEPTION : " + req.getEmail(), e);
+					}
+				}).start();
+
+			}
+
+		}
+		return resp;
+	}
+
+	@Override
+	public GroupRegDetailResponse getNewGroupRegDetails(int pageNo, int pageSize, String sortBy, String sortDir) throws Exception {
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+		List<UserRegistrationDetailDTO> userRegDetailDTO=null;
+		GroupRegDetailResponse groupRegDetailResponse=new GroupRegDetailResponse();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Page<User> pageUser = userRepository.findByMemberCategoryAndVerifiedAndNotifyAdminNewuser(CommonConstants.GROUP,true,CommonConstants.INT_ONE,pageable);
+        List<User> listOfPosts = pageUser.getContent();
+        
+        userRegDetailDTO= listOfPosts.stream().map(post -> mapToUserRegDTO(post)).collect(Collectors.toList());
+        if(userRegDetailDTO!=null && !userRegDetailDTO.isEmpty()) {
+        	groupRegDetailResponse.setUserRegDetailDTO(userRegDetailDTO);
+        	groupRegDetailResponse.setPageNo(pageUser.getNumber());
+        	groupRegDetailResponse.setPageSize(pageUser.getSize());
+        	groupRegDetailResponse.setTotalElements(pageUser.getTotalElements());
+        	groupRegDetailResponse.setTotalPages(pageUser.getTotalPages());
+        	groupRegDetailResponse.setLast(pageUser.isLast());
+        }
+
+        return groupRegDetailResponse;
+	}
 	
 	
 }

@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	Optional<User> getUserByEmailAndVerified(String email,Boolean verified);
 	Optional<User> getUserByEmailAndMemberCategory(String email,Integer memberCat);
 	Page<User> findByMemberCategory(int intOne, Pageable pageable);
-	Page<User> findByMemberCategoryAndVerified(int intOne,boolean  verified, Pageable pageable);
+	Page<User> findByMemberCategoryAndVerified(int memberCategory,boolean  verified, Pageable pageable);
 	Page<User> findByMemberCategoryAndVerifiedAndNotifyAdminNewuser(int intOne,boolean  verified, int notifyAdmin,Pageable pageable);
 	
 	@Query("SELECT U FROM User U WHERE U.memberCategory=1 AND U.enabled=1 AND U.verified=1")

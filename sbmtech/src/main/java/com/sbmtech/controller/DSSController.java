@@ -72,7 +72,7 @@ public class DSSController {
 	}
 	*/
 	@GetMapping("/getAllRole")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<Role> getAllRole() throws Exception {
 		return dssService.getAllRole();
