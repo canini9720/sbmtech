@@ -9,6 +9,7 @@ import com.sbmtech.model.DocTypeMaster;
 import com.sbmtech.model.PaidBasisMaster;
 import com.sbmtech.model.Role;
 import com.sbmtech.model.WorkTimeMaster;
+import com.sbmtech.payload.response.GroupActivityResponse;
 
 public interface DSSService {
 	
@@ -23,5 +24,5 @@ public interface DSSService {
 	public List<BankMaster> getBankMaster()throws Exception;
 	public List<DocTypeMaster> getMemDoc()throws Exception;
 	public List<DocTypeMaster> getMemEduDoc()throws Exception;
-	
+	public GroupActivityResponse getAllGroupActivitesActive();
 }
