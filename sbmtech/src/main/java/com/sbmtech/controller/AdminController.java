@@ -35,6 +35,7 @@ import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.EduRequest;
 import com.sbmtech.payload.request.EmploymentRequest;
+import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.JobRequest;
@@ -596,5 +597,24 @@ public class AdminController {
 		}
 		  return gson.toJson(respObj);
 	 }
+	
+	@PostMapping(value="saveGroupActivityDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupActivityDetails(@RequestBody GroupActivityRequest groupActivityRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp = groupDetailsService.saveGroupActivityDetails(groupActivityRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	  }
 
 }

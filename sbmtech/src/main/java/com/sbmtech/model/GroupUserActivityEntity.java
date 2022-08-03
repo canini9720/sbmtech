@@ -22,33 +22,42 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "grp_activity")
+@Table(name = "grp_user_activity")
 @Setter
 @Getter
 @NoArgsConstructor
-public class GroupActivityEntity implements Serializable {
+public class GroupUserActivityEntity implements Serializable {
 
 	
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "grp_act_id")
-	private Integer grpActivityId;
+	@Column(name = "id")
+	private Long id;
 
-	@Column(name = "grp_act")
-	private String grpActivity;
-		
+	
+	@Column(name = "grp_user_id")
+	private Long userId;
+	
+
+	@Column(name = "grp_act_id")
+	private Integer activityId;
+	
+	
+	@Column(name = "grp_subact_id")
+	private Integer subActivityId;
+
+	
+	@ManyToOne
+	@JoinColumn(name="grp_user_id",insertable=false, updatable=false)
+	private User userEntity;
+	
 	
 	@Column(name = "active")
 	private Integer active;
-	
-	
-	@OneToMany(mappedBy="groupActivityEntity",fetch=FetchType.LAZY,targetEntity=GroupSubActivityEntity.class,cascade = CascadeType.ALL)
-	private List<GroupSubActivityEntity> groupSubActivityList= new ArrayList<GroupSubActivityEntity>();
 	/*
-	@OneToMany(mappedBy="groupActivityEntity",fetch=FetchType.LAZY,targetEntity=GroupUserActivityEntity.class,cascade = CascadeType.ALL)
-	private List<GroupUserActivityEntity> groupUserActivityList= new ArrayList<GroupUserActivityEntity>();
-	
-	*/
+	@ManyToOne
+	@JoinColumn(name="grp_act_id")
+	private GroupActivityEntity groupActivityEntity; */
 }

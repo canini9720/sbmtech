@@ -29,23 +29,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
-import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
+import com.sbmtech.dto.GroupActivityDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.GroupInfoDTO;
+import com.sbmtech.dto.GroupSubActivityDTO;
 import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.PartnerDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
+import com.sbmtech.exception.ExceptionUtil;
+import com.sbmtech.model.GroupActivityEntity;
 import com.sbmtech.model.GroupDetailsEntity;
 import com.sbmtech.model.GroupPartnerDetailEntity;
+import com.sbmtech.model.GroupUserActivityEntity;
+import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
-import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
+import com.sbmtech.repository.GroupUserActivityRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
 import com.sbmtech.service.CommonService;
@@ -78,6 +84,9 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	
 	@Autowired
 	NotificationService notificationService;
+	
+	@Autowired
+	GroupUserActivityRepository groupUserActivityRepo;
 	
 	
 	@Autowired
@@ -282,6 +291,63 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
         }
 
         return groupRegDetailResponse;
+	}
+
+	@Override
+	public CommonResponse saveGroupActivityDetails(GroupActivityRequest req) throws Exception {
+		CommonResponse resp=null;
+		int result=0;
+		ExceptionUtil.throwNullOrEmptyValidationException("UserId", req.getUserId(), true);
+		
+		Optional<User> userOp = userRepository.findById(req.getUserId());
+		List<GroupUserActivityEntity>oldGroupUserActEntity= null;
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			oldGroupUserActEntity=user.getGroupUserActivityList();
+			if(oldGroupUserActEntity!=null && !oldGroupUserActEntity.isEmpty()) {
+				oldGroupUserActEntity.forEach(o -> {
+					o.setActive(CommonConstants.INT_ZERO);
+				});
+			}
+		}
+		List<GroupActivityDTO> activityList=req.getGroupActivityList();
+		if(activityList!=null && !activityList.isEmpty()) {
+			for(GroupActivityDTO grpActivity: activityList) {
+				Integer activityId=grpActivity.getGroupActivityId();
+				List<GroupSubActivityDTO> subActivityList=grpActivity.getListGroupSubActivity();
+				if(subActivityList!=null && !subActivityList.isEmpty()) {
+					for(GroupSubActivityDTO grpSubActivity: subActivityList) {
+						GroupUserActivityEntity userSubActivityEnt=new GroupUserActivityEntity();
+						userSubActivityEnt.setActivityId(activityId);
+						userSubActivityEnt.setUserId(req.getUserId());
+						userSubActivityEnt.setSubActivityId(grpSubActivity.getGroupSubActivityId());
+						userSubActivityEnt.setActive(CommonConstants.INT_ONE);
+						groupUserActivityRepo.saveAndFlush(userSubActivityEnt);
+					}
+					
+				}
+			}
+			result=1;
+			resp = new CommonResponse(CommonConstants.SUCCESS_CODE);
+		}
+		
+		
+		if(result==1 && oldGroupUserActEntity!=null && !oldGroupUserActEntity.isEmpty()) {
+			List<Long> oldContIds = oldGroupUserActEntity.stream().filter(cont->cont.getActive()==0)
+                    .map(GroupUserActivityEntity::getId).collect(Collectors.toList());
+			deleteGroupUserActivity(oldContIds);
+			resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+		}
+		
+		return resp;
+	}
+	
+	@Override
+	public void deleteGroupUserActivity(List<Long> oldIds) throws Exception {
+		if(oldIds!=null && !oldIds.isEmpty()) {
+			groupUserActivityRepo.deleteGroupUserActivityIds(oldIds);
+		}
+		
 	}
 	
 	

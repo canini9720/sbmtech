@@ -109,6 +109,11 @@ public class User {
 	@JoinColumn(name="id", insertable=false, updatable=false)
 	private GroupDetailsEntity groupDetailsEntity;
 	
+	
+	@OneToMany(mappedBy="userEntity",fetch=FetchType.LAZY,targetEntity=GroupUserActivityEntity.class,cascade = CascadeType.ALL)
+	private List<GroupUserActivityEntity> groupUserActivityList= new ArrayList<GroupUserActivityEntity>();
+	
+	
 	public Long getUserId() {
 		return userId;
 	}
@@ -273,6 +278,13 @@ public class User {
 	}
 	public void setGroupDetailsEntity(GroupDetailsEntity groupDetailsEntity) {
 		this.groupDetailsEntity = groupDetailsEntity;
+	}
+	
+	public List<GroupUserActivityEntity> getGroupUserActivityList() {
+		return groupUserActivityList;
+	}
+	public void setGroupUserActivityList(List<GroupUserActivityEntity> groupUserActivityList) {
+		this.groupUserActivityList = groupUserActivityList;
 	}
 	
 	

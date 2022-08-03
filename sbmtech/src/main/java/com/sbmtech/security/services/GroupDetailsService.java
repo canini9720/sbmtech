@@ -1,9 +1,12 @@
 package com.sbmtech.security.services;
 
+import java.util.List;
+
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.response.CommonResponse;
@@ -18,6 +21,8 @@ public interface GroupDetailsService extends UserDetailsService {
 	public GroupRegDetailResponse getAllGroupRegDetails(int pageNo, int pageSize, String sortBy, String sortDir)throws Exception;
 	public CommonResponse saveGroupRegistrationDetails(GroupRegRequest groupRegRequest)throws Exception;
 	public GroupRegDetailResponse getNewGroupRegDetails( int pageNo, int pageSize, String sortBy, String sortDir) throws Exception;
+	public CommonResponse saveGroupActivityDetails(GroupActivityRequest groupActivityRequest)throws Exception;
+	void deleteGroupUserActivity(List<Long> oldIds) throws Exception;
 	
 	
 
