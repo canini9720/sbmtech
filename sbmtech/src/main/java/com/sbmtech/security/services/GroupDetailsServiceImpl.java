@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -41,16 +42,18 @@ import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.GroupActivityEntity;
 import com.sbmtech.model.GroupDetailsEntity;
 import com.sbmtech.model.GroupPartnerDetailEntity;
+import com.sbmtech.model.GroupSubActivityEntity;
 import com.sbmtech.model.GroupUserActivityEntity;
-import com.sbmtech.model.MemberContactDetailEntity;
 import com.sbmtech.model.User;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupActivityResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
+import com.sbmtech.repository.GroupActivityMasterRepository;
 import com.sbmtech.repository.GroupUserActivityRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
@@ -87,6 +90,10 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	
 	@Autowired
 	GroupUserActivityRepository groupUserActivityRepo;
+	
+	@Autowired
+	GroupActivityMasterRepository groupActivityMasRepo;
+	
 	
 	
 	@Autowired
@@ -314,17 +321,21 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		if(activityList!=null && !activityList.isEmpty()) {
 			for(GroupActivityDTO grpActivity: activityList) {
 				Integer activityId=grpActivity.getGroupActivityId();
-				List<GroupSubActivityDTO> subActivityList=grpActivity.getListGroupSubActivity();
-				if(subActivityList!=null && !subActivityList.isEmpty()) {
-					for(GroupSubActivityDTO grpSubActivity: subActivityList) {
-						GroupUserActivityEntity userSubActivityEnt=new GroupUserActivityEntity();
-						userSubActivityEnt.setActivityId(activityId);
-						userSubActivityEnt.setUserId(req.getUserId());
-						userSubActivityEnt.setSubActivityId(grpSubActivity.getGroupSubActivityId());
-						userSubActivityEnt.setActive(CommonConstants.INT_ONE);
-						groupUserActivityRepo.saveAndFlush(userSubActivityEnt);
+				if(activityId!=0) {
+					List<GroupSubActivityDTO> subActivityList=grpActivity.getListGroupSubActivity();
+					if(subActivityList!=null && !subActivityList.isEmpty()) {
+						for(GroupSubActivityDTO grpSubActivity: subActivityList) {
+							if(grpSubActivity!=null && grpSubActivity.getGroupSubActivityId()!=0) {
+								GroupUserActivityEntity userSubActivityEnt=new GroupUserActivityEntity();
+								userSubActivityEnt.setActivityId(activityId);
+								userSubActivityEnt.setUserId(req.getUserId());
+								userSubActivityEnt.setSubActivityId(grpSubActivity.getGroupSubActivityId());
+								userSubActivityEnt.setActive(CommonConstants.INT_ONE);
+								groupUserActivityRepo.saveAndFlush(userSubActivityEnt);
+							}
+						}
+						
 					}
-					
 				}
 			}
 			result=1;
@@ -348,6 +359,61 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 			groupUserActivityRepo.deleteGroupUserActivityIds(oldIds);
 		}
 		
+	}
+
+	@Override
+	public GroupActivityResponse getGroupUserActivityDetails(GroupRequest groupRequest) throws Exception {
+		
+		
+		Optional<User> userOp = userRepository.findById(groupRequest.getGroupId());
+		List<GroupUserActivityEntity>oldGroupUserActEntity= null;
+		List<GroupSubActivityDTO> listGroupSubActivityDTO=null;
+		if(userOp.isPresent()) {
+			User user=userOp.get();
+			oldGroupUserActEntity=user.getGroupUserActivityList();
+			if(oldGroupUserActEntity!=null && !oldGroupUserActEntity.isEmpty()) {
+				listGroupSubActivityDTO=oldGroupUserActEntity.stream().map(x->{
+					GroupSubActivityDTO subActivityDTO=new GroupSubActivityDTO();
+					subActivityDTO.setGroupSubActivityId(x.getSubActivityId());
+					return subActivityDTO;
+				}).collect(Collectors.toList());
+			}
+		}
+		final List<GroupSubActivityDTO> listFinalDTO=listGroupSubActivityDTO;
+		
+		
+		GroupActivityResponse resp=null;
+		List<GroupActivityEntity> list=groupActivityMasRepo.findByActive(CommonConstants.INT_ONE);
+		List<GroupActivityDTO> grpActDTO = list.stream().
+			     map(s -> {
+			    	 GroupActivityDTO u = new GroupActivityDTO();
+			    u.setGroupActivityId(s.getGrpActivityId());
+			    u.setGroupActivity(s.getGrpActivity());
+			    
+			    List<GroupSubActivityDTO> grpSubActDTO = s.getGroupSubActivityList().stream()
+			    		.filter(sa->sa.getActive()==CommonConstants.INT_ONE)
+			    		.map(sa->{
+				    		GroupSubActivityDTO subAct=new GroupSubActivityDTO();
+				    		subAct.setGroupSubActivityId(sa.getGrpSubActivityId());
+				    		subAct.setGroupSubActivity(sa.getGrpSubActivity());
+				    		for(GroupSubActivityDTO dbDTO:listFinalDTO) {
+				    			if(sa.getGrpSubActivityId()==dbDTO.getGroupSubActivityId()) {
+				    				subAct.setSelected(CommonConstants.INT_ONE);
+				    			}
+				    		}
+				    		return subAct;
+			    	}).collect(Collectors.toList());
+			    u.setListGroupSubActivity(grpSubActDTO);
+			    return u;
+			    }).collect(Collectors.toList());
+		
+		if(list!=null && !list.isEmpty()) {
+			resp=new GroupActivityResponse();
+			resp.setGroupActivityList(grpActDTO);
+		}
+		
+		return resp;
+
 	}
 	
 	

@@ -10,6 +10,7 @@ import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupActivityResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 
@@ -23,6 +24,7 @@ public interface GroupDetailsService extends UserDetailsService {
 	public GroupRegDetailResponse getNewGroupRegDetails( int pageNo, int pageSize, String sortBy, String sortDir) throws Exception;
 	public CommonResponse saveGroupActivityDetails(GroupActivityRequest groupActivityRequest)throws Exception;
 	void deleteGroupUserActivity(List<Long> oldIds) throws Exception;
+	public GroupActivityResponse getGroupUserActivityDetails(GroupRequest groupRequest)throws Exception;
 	
 	
 

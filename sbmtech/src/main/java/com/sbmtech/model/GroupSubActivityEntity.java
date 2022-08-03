@@ -45,9 +45,9 @@ public class GroupSubActivityEntity implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="grp_act_id")
 	private GroupActivityEntity groupActivityEntity;
-	
+	/*
 	@OneToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
 	@JoinColumn(name="grp_subact_id", insertable=false, updatable=false)
-	private GroupUserActivityEntity groupUserActivityEntity;
+	private GroupUserActivityEntity groupUserActivityEntity;*/
 	
 }

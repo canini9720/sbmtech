@@ -13,5 +13,6 @@ public class GroupSubActivityDTO {
 
 	private Integer groupSubActivityId;
 	private String groupSubActivity;
+	private Integer selected=0;
 	
 }

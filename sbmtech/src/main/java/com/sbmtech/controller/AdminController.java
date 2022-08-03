@@ -42,6 +42,7 @@ import com.sbmtech.payload.request.JobRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupActivityResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.payload.response.MemberRegDetailResponse;
 import com.sbmtech.repository.GDriveUserRepository;
@@ -616,5 +617,28 @@ public class AdminController {
 		}
 		  return gson.toJson(respObj);
 	  }
+	
+	@GetMapping(value="getGroupUserActivityDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupUserActivityDetails(@RequestParam(name = "groupId", required = true) Long groupId) throws Exception {
+		Gson gson = new Gson();
+		
+		GroupRequest groupRequest=new GroupRequest();
+		groupRequest.setGroupId(groupId);
+		JSONObject respObj = new JSONObject();
+		groupRequest.setGroupId(groupId);
+		GroupActivityResponse resp = groupDetailsService.getGroupUserActivityDetails(groupRequest);
+		if (resp != null) {
+			respObj.put("groupDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
 
 }
