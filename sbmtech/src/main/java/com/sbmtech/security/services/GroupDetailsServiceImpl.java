@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
 import com.sbmtech.dto.GroupActivityDTO;
 import com.sbmtech.dto.GroupDetailDTO;
@@ -45,9 +47,11 @@ import com.sbmtech.model.GroupPartnerDetailEntity;
 import com.sbmtech.model.GroupSubActivityEntity;
 import com.sbmtech.model.GroupUserActivityEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
+import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.GroupActivityResponse;
@@ -413,6 +417,38 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		}
 		
 		return resp;
+
+	}
+
+	@Override
+	public CommonResponse saveGroupContactDetails(GroupRequest groupRequest) throws Exception {
+		ProfileRequest pr=new ProfileRequest();
+		BeanUtils.copyProperties(groupRequest, pr);
+		pr.setUserId(groupRequest.getGroupId());
+		pr.setContactDetails(groupRequest.getContactDetails());
+		return userDetailsService.saveMemberContactDetails(pr);
+
+	}
+
+	@Override
+	public ContactDetailDTO getGroupContactDetails(GroupRequest groupRequest) throws Exception {
+		ProfileRequest pr=new ProfileRequest();
+		BeanUtils.copyProperties(groupRequest, pr);
+		pr.setUserId(groupRequest.getGroupId());
+		return userDetailsService.getMemberContactDetailsById(pr);
+	}
+
+	@Override
+	public CommonResponse saveGroupDocumentDetails(DocumentRequest docRequest) throws Exception {
+		return userDetailsService.saveDocumentDetails(docRequest);
+	}
+
+	@Override
+	public DocumentDetailDTO getGroupDocumentDetails(GroupRequest groupRequest) throws Exception {
+		ProfileRequest pr=new ProfileRequest();
+		BeanUtils.copyProperties(groupRequest, pr);
+		pr.setUserId(groupRequest.getGroupId());
+		return userDetailsService.getDocumentDetailsById(pr);
 
 	}
 	

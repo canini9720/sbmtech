@@ -638,21 +638,6 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 				
 				
 				for(DocumentDTO docDet:docDetailsList) {
-					if(oldDocumentEntity!=null && !oldDocumentEntity.isEmpty()) {
-						/*
-						oldDocumentEntity.forEach(o -> {
-							if(docDet.getDocTypeId()==o.getDocTypeId()) {
-								o.setActive(CommonConstants.INT_ZERO);
-								new Thread(() -> {
-									try {
-										commonService.deleteFileByGFileId(docReq.getUserId(), o.getDocTypeId(),o.getGoogleFileId());
-									} catch (Exception exp) {
-										loggerErr.error("GDrive EXCEPTION --> USER_ID : "+docReq.getUserId()+", DocTypeId="+o.getDocTypeId() +", ErrorMSg --> "+exp);
-									}	
-								}).start();
-							}
-						});*/
-					}
 					DocumentEntity docEnt=new DocumentEntity();
 					docDet.setUserId(docReq.getUserId());
 					BeanUtils.copyProperties(docDet, docEnt);

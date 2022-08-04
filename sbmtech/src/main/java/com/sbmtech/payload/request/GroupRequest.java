@@ -1,5 +1,8 @@
 package com.sbmtech.payload.request;
 
+import java.util.List;
+
+import com.sbmtech.dto.ContactDTO;
 import com.sbmtech.dto.GroupInfoDTO;
 
 import lombok.Getter;
@@ -13,6 +16,7 @@ public class GroupRequest {
 	
 	private Long groupId;
 	private GroupInfoDTO groupDetails;
+	private List<ContactDTO> contactDetails;
 	
 	
 

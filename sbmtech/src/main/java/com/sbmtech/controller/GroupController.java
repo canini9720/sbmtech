@@ -20,8 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.ContactDetailDTO;
+import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.GroupDetailDTO;
+import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupRequest;
+import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
@@ -123,5 +127,100 @@ public class GroupController {
 		  return gson.toJson(respObj);
 	 }
 
+	@PostMapping(value="saveGroupContactDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupContactDetails(@RequestBody GroupRequest groupRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		groupRequest.setGroupId(userId);
+		CommonResponse resp = groupDetailsService.saveGroupContactDetails(groupRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
+	
+	
+	@GetMapping(value="getGroupContactDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupContactDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		Gson gson = new Gson();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		JSONObject respObj = new JSONObject();
+		GroupRequest groupRequest=new GroupRequest();
+		groupRequest.setGroupId(userId);
+		ContactDetailDTO resp = groupDetailsService.getGroupContactDetails(groupRequest);
+		if (resp != null) {
+			respObj.put("contactDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	
+	@PostMapping(value="saveGroupDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupDocumentDetails(@RequestBody DocumentRequest docRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		docRequest.setUserId(userId);
+		CommonResponse resp =null;
+		resp=groupDetailsService.saveGroupDocumentDetails(docRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
+	
+	
+	@GetMapping(value="getGroupDocumentDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupDocumentDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		GroupRequest groupRequest=new GroupRequest();
+
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		groupRequest.setGroupId(userId);
+		DocumentDetailDTO resp = groupDetailsService.getGroupDocumentDetails(groupRequest);
+		if (resp != null) {
+			respObj.put("documentDetailDTO", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
+	
+	
 	
 }
