@@ -12,6 +12,10 @@ public class Role {
 	@Column(length = 20)
 	private ERole name;
 	
+	
+	@Column(length = 20)
+	private String dispName;
+	
 	public Role() {
 	}
 	
@@ -36,4 +40,14 @@ public class Role {
 	public void setName(ERole name) {
 		this.name = name;
 	}
+
+	public String getDispName() {
+		return dispName;
+	}
+
+	public void setDispName(String dispName) {
+		this.dispName = dispName;
+	}
+	
+	
 }

@@ -29,4 +29,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	@Query("SELECT U FROM User U WHERE U.memberCategory=1 AND U.enabled=1 AND U.verified=1")
 	public List<User> getAllActiveMembers();
 	
+	@Query("SELECT U FROM User U WHERE U.firstname like %:firstname% AND  U.memberCategory=1 AND U.enabled=1 AND U.verified=1")
+	public List<User> getAllActiveMembers(@Param("firstname") String firstname);
+	
 }

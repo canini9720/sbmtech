@@ -525,6 +525,29 @@ public class CommonServiceImpl implements CommonService {
 		return asDto;
 	}
 
+	@Override
+	public List<ActiveMemberDTO> getAllActiveMembers(String firstname) {
+		List<User> activeMembers=userRepository.getAllActiveMembers(firstname);
+		List<ActiveMemberDTO> asDto = activeMembers.stream().filter(Objects::nonNull).map(new Function<User, ActiveMemberDTO>() {
+		    @SuppressWarnings("deprecation")
+			@Override
+		    public ActiveMemberDTO apply(User userEnt) {
+		    	ActiveMemberDTO activeDto=null;
+	    		activeDto=new ActiveMemberDTO();
+	    		activeDto.setUserId(userEnt.getUserId());
+	    		activeDto.setMemberName(StringUtils.capitalise((userEnt.getFirstname()+" "+CommonUtil.getStringValofObject(userEnt.getLastname())).trim()));
+	    		/*
+	    		FileItemDTO photoDTO=getFileByUserIdAndDocTypeId(userEnt.getUserId(), CommonConstants.INT_ONE);
+				if(photoDTO!=null && StringUtils.isNotBlank(photoDTO.getBase64String())) {
+					activeDto.setPhoto64(photoDTO.getBase64String());
+				}
+	    		*/
+		    	return activeDto;
+		    }
+		}).collect(Collectors.toList());
+		return asDto;
+	}
+
 
 
 	

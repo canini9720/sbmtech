@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,6 +83,20 @@ public class CommonController {
 		Gson gson = new Gson();
         return gson.toJson(respObj);
 	}
+	
+	
+	//For AutoComplete
+	@GetMapping(value="/getAllActiveMembersAC",  produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) or hasRole(@securityService.company) or hasRole(@securityService.admin)")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	@ResponseBody
+	public List<ActiveMemberDTO> getAllActiveMembersAC(@RequestParam(name = "firstname" , required = true) String firstname) throws Exception{
+		JSONObject respObj = new JSONObject();
+		List<ActiveMemberDTO> allActiveMembers=commonService.getAllActiveMembers(firstname);
+		return allActiveMembers;
+	}
+	
+	
 
 }
 

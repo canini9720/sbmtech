@@ -26,5 +26,6 @@ public interface CommonService {
 	public List<FileItemDTO> getAllFileByUser(Long userId,Integer docTypeId)throws Exception;
 	public boolean checkTokenExist(HttpServletRequest request)throws Exception;
 	public List<ActiveMemberDTO> getAllActiveMembers()throws Exception;
+	public List<ActiveMemberDTO> getAllActiveMembers(String username);
 
 }
