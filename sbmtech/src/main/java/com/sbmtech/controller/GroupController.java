@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.GroupDetailDTO;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupRequest;
 import com.sbmtech.payload.request.ProfileRequest;
@@ -221,6 +223,51 @@ public class GroupController {
 		  return gson.toJson(respObj);
 	}
 	
+
+	@PostMapping(value="saveGroupBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String saveGroupBankDetails(@RequestBody BankRequest bankRequest,
+			@CurrentSecurityContext(expression = "authentication")  Authentication authentication)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		bankRequest.setUserId(userId);
+		CommonResponse resp =null;
+		resp=groupDetailsService.saveGroupBankDetails(bankRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	}
 	
-	
+
+	@GetMapping(value="getGroupBankDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.group) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupBankDetails(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		GroupRequest groupRequest=new GroupRequest();
+		groupRequest.setGroupId(userId);
+		BankDetailDTO resp = groupDetailsService.getGroupBankDetailsById(groupRequest);
+		if (resp != null) {
+			respObj.put("bankDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
 }

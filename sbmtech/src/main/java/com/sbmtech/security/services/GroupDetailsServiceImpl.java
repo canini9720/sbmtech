@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.FileItemDTO;
@@ -47,6 +48,7 @@ import com.sbmtech.model.GroupPartnerDetailEntity;
 import com.sbmtech.model.GroupSubActivityEntity;
 import com.sbmtech.model.GroupUserActivityEntity;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
@@ -450,6 +452,19 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		pr.setUserId(groupRequest.getGroupId());
 		return userDetailsService.getDocumentDetailsById(pr);
 
+	}
+
+	@Override
+	public CommonResponse saveGroupBankDetails(BankRequest bankRequest) throws Exception {
+		return userDetailsService.saveMemberBankDetails(bankRequest);
+	}
+
+	@Override
+	public BankDetailDTO getGroupBankDetailsById(GroupRequest groupRequest) throws Exception {
+		ProfileRequest pr=new ProfileRequest();
+		BeanUtils.copyProperties(groupRequest, pr);
+		pr.setUserId(groupRequest.getGroupId());
+		return userDetailsService.getMemberBankDetailsById(pr);
 	}
 	
 	

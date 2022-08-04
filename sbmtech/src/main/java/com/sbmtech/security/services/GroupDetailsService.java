@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.model.User;
+import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
@@ -33,6 +35,8 @@ public interface GroupDetailsService extends UserDetailsService {
 	public ContactDetailDTO getGroupContactDetails(GroupRequest groupRequest)throws Exception;
 	public CommonResponse saveGroupDocumentDetails(DocumentRequest docRequest)throws Exception;
 	public DocumentDetailDTO getGroupDocumentDetails(GroupRequest groupRequest)throws Exception;
+	public CommonResponse saveGroupBankDetails(BankRequest bankRequest)throws Exception;
+	public BankDetailDTO getGroupBankDetailsById(GroupRequest groupRequest)throws Exception;
 	
 	
 
