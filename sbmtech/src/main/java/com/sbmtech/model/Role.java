@@ -16,6 +16,18 @@ public class Role {
 	@Column(length = 20)
 	private String dispName;
 	
+	@Column(name = "for_super_admin")
+	private Integer forSuperAdmin;
+	
+	@Column(name = "for_member")
+	private Integer forMember;
+	
+	@Column(name = "for_group")
+	private Integer forGroup;
+	
+	@Column(name = "for_group_admin")
+	private Integer forGroupAdmin;
+	
 	public Role() {
 	}
 	
@@ -47,6 +59,38 @@ public class Role {
 
 	public void setDispName(String dispName) {
 		this.dispName = dispName;
+	}
+
+	public Integer getForSuperAdmin() {
+		return forSuperAdmin;
+	}
+
+	public void setForSuperAdmin(Integer forSuperAdmin) {
+		this.forSuperAdmin = forSuperAdmin;
+	}
+
+	public Integer getForMember() {
+		return forMember;
+	}
+
+	public void setForMember(Integer forMember) {
+		this.forMember = forMember;
+	}
+
+	public Integer getForGroup() {
+		return forGroup;
+	}
+
+	public void setForGroup(Integer forGroup) {
+		this.forGroup = forGroup;
+	}
+
+	public Integer getForGroupAdmin() {
+		return forGroupAdmin;
+	}
+
+	public void setForGroupAdmin(Integer forGroupAdmin) {
+		this.forGroupAdmin = forGroupAdmin;
 	}
 	
 	

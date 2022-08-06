@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.common.util.CommonUtil;
+import com.sbmtech.dto.RoleDTO;
 import com.sbmtech.model.BankMaster;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
@@ -82,6 +83,13 @@ public class DSSController {
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<Role> getAllRole() throws Exception {
 		return dssService.getAllRole();
+	}
+	
+	@GetMapping("/getAllRoleGroupAdmin")
+	@PreAuthorize("hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public List<RoleDTO> getAllRoleGroupAdmin() throws Exception {
+		return dssService.getAllRoleGroupAdmin();
 	}
 	
 	@GetMapping("/getWorkTimeMaster")

@@ -2,6 +2,7 @@ package com.sbmtech.service;
 
 import java.util.List;
 
+import com.sbmtech.dto.RoleDTO;
 import com.sbmtech.model.BankMaster;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
@@ -25,4 +26,5 @@ public interface DSSService {
 	public List<DocTypeMaster> getMemDoc()throws Exception;
 	public List<DocTypeMaster> getMemEduDoc()throws Exception;
 	public GroupActivityResponse getAllGroupActivitesActive();
+	public List<RoleDTO> getAllRoleGroupAdmin()throws Exception;
 }

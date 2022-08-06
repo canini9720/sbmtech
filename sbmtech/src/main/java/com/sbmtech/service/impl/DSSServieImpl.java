@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.sbmtech.common.constant.CommonConstants;
 import com.sbmtech.dto.GroupActivityDTO;
 import com.sbmtech.dto.GroupSubActivityDTO;
+import com.sbmtech.dto.RoleDTO;
 import com.sbmtech.model.BankMaster;
 import com.sbmtech.model.BloodGroup;
 import com.sbmtech.model.ContactTypeMaster;
@@ -138,6 +139,18 @@ public class DSSServieImpl implements DSSService {
 		}
 		
 		return resp;
+	}
+
+	@Override
+	public List<RoleDTO> getAllRoleGroupAdmin() throws Exception {
+		return roleRepo.findByForGroupAdmin(CommonConstants.INT_ONE).stream().map(x->{
+			RoleDTO dto=new RoleDTO();
+			dto.setName(x.getName());
+			dto.setDispName(x.getDispName());
+			dto.setRoleId(x.getRoleId());
+			return dto;
+		}).collect(Collectors.toList());
+
 	}
 	
 
