@@ -8,17 +8,16 @@ import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
 import com.sbmtech.dto.DocumentDetailDTO;
 import com.sbmtech.dto.GroupDetailDTO;
-import com.sbmtech.model.User;
 import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
-import com.sbmtech.payload.request.ProfileRequest;
+import com.sbmtech.payload.request.GroupTeamContactRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.GroupActivityResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
-import com.sbmtech.payload.response.MemberRegDetailResponse;
+import com.sbmtech.payload.response.GroupTeamContactResponse;
 
 public interface GroupDetailsService extends UserDetailsService {
 
@@ -37,6 +36,8 @@ public interface GroupDetailsService extends UserDetailsService {
 	public DocumentDetailDTO getGroupDocumentDetails(GroupRequest groupRequest)throws Exception;
 	public CommonResponse saveGroupBankDetails(BankRequest bankRequest)throws Exception;
 	public BankDetailDTO getGroupBankDetailsById(GroupRequest groupRequest)throws Exception;
+	public CommonResponse saveGroupTeamContact(GroupTeamContactRequest groupRequest)throws Exception;
+	public GroupTeamContactResponse getGroupTeamContact(GroupTeamContactRequest groupTeamContactRequest);
 	
 	
 

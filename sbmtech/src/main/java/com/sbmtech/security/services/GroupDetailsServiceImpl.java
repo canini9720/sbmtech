@@ -1,15 +1,17 @@
 package com.sbmtech.security.services;
 
 
+
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sbmtech.common.constant.CommonConstants;
+import com.sbmtech.common.constant.ExceptionValidationsConstants;
 import com.sbmtech.common.util.CommonUtil;
 import com.sbmtech.dto.BankDetailDTO;
 import com.sbmtech.dto.ContactDetailDTO;
@@ -38,37 +41,48 @@ import com.sbmtech.dto.GroupActivityDTO;
 import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.dto.GroupInfoDTO;
 import com.sbmtech.dto.GroupSubActivityDTO;
+import com.sbmtech.dto.GroupTeamPersonDTO;
 import com.sbmtech.dto.NotifEmailDTO;
 import com.sbmtech.dto.PartnerDTO;
+import com.sbmtech.dto.RoleDTO;
 import com.sbmtech.dto.UserRegistrationDetailDTO;
 import com.sbmtech.exception.ExceptionUtil;
 import com.sbmtech.model.GroupActivityEntity;
 import com.sbmtech.model.GroupDetailsEntity;
 import com.sbmtech.model.GroupPartnerDetailEntity;
-import com.sbmtech.model.GroupSubActivityEntity;
+import com.sbmtech.model.GroupTeamContactEntity;
+import com.sbmtech.model.GroupTeamPowerEntity;
 import com.sbmtech.model.GroupUserActivityEntity;
+import com.sbmtech.model.MemberContactDetailEntity;
+import com.sbmtech.model.Role;
 import com.sbmtech.model.User;
+import com.sbmtech.model.UserRoleEntity;
 import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupActivityRequest;
 import com.sbmtech.payload.request.GroupRegRequest;
 import com.sbmtech.payload.request.GroupRequest;
+import com.sbmtech.payload.request.GroupTeamContactRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.request.UserRegRequest;
 import com.sbmtech.payload.response.CommonResponse;
 import com.sbmtech.payload.response.GroupActivityResponse;
 import com.sbmtech.payload.response.GroupRegDetailResponse;
+import com.sbmtech.payload.response.GroupTeamContactResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.GroupActivityMasterRepository;
+import com.sbmtech.repository.GroupTeamContactRepository;
 import com.sbmtech.repository.GroupUserActivityRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
+import com.sbmtech.repository.UserRoleRespositoryCustom;
 import com.sbmtech.service.CommonService;
 import com.sbmtech.service.NotificationService;
 import com.sbmtech.service.OTPService;
 import com.sbmtech.service.impl.AppSystemPropImpl;
 import com.sbmtech.service.impl.CustomeUserDetailsServiceUtil;
 import com.sbmtech.service.impl.GroupDetailsServiceUtil;
+
 @Service
 @Transactional
 @DependsOn("AppSystemProp")
@@ -100,6 +114,12 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	@Autowired
 	GroupActivityMasterRepository groupActivityMasRepo;
 	
+	
+	@Autowired
+	GroupTeamContactRepository groupTeamContactRepo;
+	
+	@Autowired
+	UserRoleRespositoryCustom userRoleRepo;
 	
 	
 	@Autowired
@@ -465,6 +485,139 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		BeanUtils.copyProperties(groupRequest, pr);
 		pr.setUserId(groupRequest.getGroupId());
 		return userDetailsService.getMemberBankDetailsById(pr);
+	}
+
+	@Override
+	public CommonResponse saveGroupTeamContact(GroupTeamContactRequest groupTeamContactReq) throws Exception {
+		loggerInfo.info("saveGroupTeamContact Start by groupid="+groupTeamContactReq.getGroupId());
+		CommonResponse resp=null;
+		GroupDetailsServiceUtil.validateSaveGroupTeamContactRequest(groupTeamContactReq);
+		
+		Optional<User> userOp = userRepository.findById(groupTeamContactReq.getGroupId());
+		if(userOp.isPresent()) {//groupId
+			GroupTeamPersonDTO personDTO=groupTeamContactReq.getGroupTeamPersonDTO();
+			Optional<User> memberOp = userRepository.findByUserIdAndMemberCategory(personDTO.getMemberId(),CommonConstants.MEMBER);
+			Optional<GroupTeamContactEntity> groupTeamMemberContOp= groupTeamContactRepo.findByGroupIdAndMemberId(groupTeamContactReq.getGroupId(),personDTO.getMemberId());
+			if(memberOp.isPresent()) {
+				GroupTeamContactEntity grpContactEnt=new GroupTeamContactEntity();
+				if(groupTeamMemberContOp.isPresent()) {
+					grpContactEnt=groupTeamMemberContOp.get();
+				}
+				List<RoleDTO> roleList=personDTO.getPowerList();
+				List<Role> dbRole=roleRepository.findByForGroupAdmin(CommonConstants.INT_ONE);
+				List<Integer> userRoleList = roleList.stream().map(s -> s.getRoleId()).toList();
+				List<Integer> dbRoleList = dbRole.stream().map(s->s.getRoleId()).toList();
+				loggerInfo.info("user role list="+userRoleList);
+				loggerInfo.info("db group role list="+dbRoleList);
+				boolean extraRoleAdded=false;
+				for(Integer i:userRoleList) {
+					extraRoleAdded=!(dbRoleList.contains(i));
+					if(extraRoleAdded) {
+						loggerInfo.info("user role extra roleId= "+i);
+						break;
+					}
+				}
+				if(extraRoleAdded) {
+					ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_ROLE_ID, ExceptionUtil.EXCEPTION_VALIDATION);
+				}
+				loggerInfo.info("extraRoleAdded="+extraRoleAdded+" ,by groupid="+groupTeamContactReq.getGroupId());
+				List<GroupTeamPowerEntity> oldMemPwrList=grpContactEnt.getMemeberPowerList();
+				if(oldMemPwrList!=null && !oldMemPwrList.isEmpty()) {
+					oldMemPwrList.forEach(o -> {
+						o.setActive(CommonConstants.INT_ZERO);
+					});
+					loggerInfo.info("old pwr list set to inactive="+oldMemPwrList+" ,for memberid="+grpContactEnt.getMemberId());
+				}
+				grpContactEnt.setGroupId(groupTeamContactReq.getGroupId());
+				BeanUtils.copyProperties(groupTeamContactReq.getGroupTeamPersonDTO(), grpContactEnt);
+				
+				for(RoleDTO roleDTO:roleList) {
+					GroupTeamPowerEntity powerEnt=new GroupTeamPowerEntity();
+					powerEnt.setRoleId(roleDTO.getRoleId());
+					powerEnt.setGroupTeamContactEntity(grpContactEnt);
+					powerEnt.setActive(CommonConstants.INT_ONE);
+					grpContactEnt.addPowerList(powerEnt);
+				}
+				loggerInfo.info("New pwr list set to active="+roleList+" ,for memberid="+grpContactEnt.getMemberId());
+				grpContactEnt.setActive(CommonConstants.INT_ONE);
+				grpContactEnt=groupTeamContactRepo.saveAndFlush(grpContactEnt);
+				
+				if(grpContactEnt!=null ) {
+					
+					List<Long> oldGroupTeamPowerIds = oldMemPwrList.stream().filter(cont->cont.getActive()==0)
+	                        .map(GroupTeamPowerEntity::getGroupTeamPowerId).collect(Collectors.toList());
+					System.out.println("oldGroupTeamPowerIds="+oldGroupTeamPowerIds); //Delete old ids or keep it for record, Right now not deleted
+					loggerInfo.info("oldGroupTeamPowerIds="+oldGroupTeamPowerIds+" ,for memberid="+grpContactEnt.getMemberId());
+					List<Integer> oldGroupTeamRoleIds=oldMemPwrList.stream().filter(cont->cont.getActive()==0)
+							.map(GroupTeamPowerEntity::getRoleId).collect(Collectors.toList());
+					System.out.println("oldGroupTeamRoleIds="+oldGroupTeamRoleIds); //Old Role ids 
+					if(oldGroupTeamRoleIds!=null && !oldGroupTeamRoleIds.isEmpty()) {
+						userRoleRepo.deleteGroupTeamUserRole(grpContactEnt.getMemberId(), oldGroupTeamRoleIds); //Delete old roles from user_roles table
+						System.out.println("Old role deleted="+oldGroupTeamRoleIds);
+						loggerInfo.info("Old role deleted in user_roles"+oldGroupTeamRoleIds+" ,for memberid="+grpContactEnt.getMemberId());
+					}
+					//save into user_roles table
+					userRoleRepo.saveGroupTeamUserRole(grpContactEnt.getMemberId(), userRoleList);
+					resp=new CommonResponse(CommonConstants.SUCCESS_CODE);
+					resp.setResponseObj(grpContactEnt);
+					
+				}
+                        
+			}else {
+				ExceptionUtil.throwException(ExceptionValidationsConstants.INVALID_PERSON_DATA, ExceptionUtil.EXCEPTION_VALIDATION);
+			}
+			
+		}
+		loggerInfo.info("saveGroupTeamContact End by groupid="+groupTeamContactReq.getGroupId());
+		return resp;
+	}
+
+	@Override
+	public GroupTeamContactResponse getGroupTeamContact(GroupTeamContactRequest groupTeamContactRequest) {
+		GroupTeamContactResponse resp=null;
+		List<GroupTeamContactEntity> listGroupTeamEnt=groupTeamContactRepo.findByGroupId(groupTeamContactRequest.getGroupId());
+		if(listGroupTeamEnt!=null && !listGroupTeamEnt.isEmpty()) {
+			resp=new GroupTeamContactResponse();
+			List<GroupTeamPersonDTO> listGroupTeamDto=new ArrayList<GroupTeamPersonDTO>();
+			for(GroupTeamContactEntity ent:listGroupTeamEnt) {
+				GroupTeamPersonDTO dto=new GroupTeamPersonDTO();
+				resp.setGroupId(ent.getGroupId());
+				BeanUtils.copyProperties(ent, dto);
+				List<GroupTeamPowerEntity> memeberPowerList=ent.getMemeberPowerList();
+				if(memeberPowerList!=null && !memeberPowerList.isEmpty()) {
+					final List<GroupTeamPowerEntity> memeberPowerListf=memeberPowerList.stream().filter(x->x.getActive()==CommonConstants.INT_ONE).toList();
+					List<Role> dbRole=roleRepository.findByForGroupAdmin(CommonConstants.INT_ONE);
+					
+					List<RoleDTO> listRoleDTO =dbRole.stream().map(x->{
+						RoleDTO rolDTO = new RoleDTO();
+						for (GroupTeamPowerEntity pow : memeberPowerListf) {
+							if (pow.getRoleId() == x.getRoleId()) {
+								rolDTO.setRoleId(x.getRoleId());
+								rolDTO.setDispName(x.getDispName());
+								rolDTO.setSelected(CommonConstants.INT_ONE);
+								break;
+							}else {
+								rolDTO.setRoleId(x.getRoleId());
+								rolDTO.setDispName(x.getDispName());
+								rolDTO.setSelected(CommonConstants.INT_ZERO);
+							}
+						}
+						return rolDTO;
+					}).collect(Collectors.toList());
+					//System.out.println("all listRoleDTO "+listRoleDTO);
+					dto.setPowerList(listRoleDTO);
+				}
+				listGroupTeamDto.add(dto);
+				
+			}
+						
+			
+			resp.setListGroupTeamPersonDTO(listGroupTeamDto);
+			
+			
+			
+		}
+		return resp;
 	}
 	
 	

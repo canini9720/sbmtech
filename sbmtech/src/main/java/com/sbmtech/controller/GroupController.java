@@ -27,8 +27,10 @@ import com.sbmtech.dto.GroupDetailDTO;
 import com.sbmtech.payload.request.BankRequest;
 import com.sbmtech.payload.request.DocumentRequest;
 import com.sbmtech.payload.request.GroupRequest;
+import com.sbmtech.payload.request.GroupTeamContactRequest;
 import com.sbmtech.payload.request.ProfileRequest;
 import com.sbmtech.payload.response.CommonResponse;
+import com.sbmtech.payload.response.GroupTeamContactResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.RoleRepository;
 import com.sbmtech.repository.UserRepository;
@@ -261,6 +263,52 @@ public class GroupController {
 		BankDetailDTO resp = groupDetailsService.getGroupBankDetailsById(groupRequest);
 		if (resp != null) {
 			respObj.put("bankDetails", resp);
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	
+	
+	@PostMapping(value="saveGroupTeamContact", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.groupAdmin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  saveGroupTeamContact(@RequestBody GroupTeamContactRequest groupTeamContactRequest,@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		Long userId= customUser.getUserId();
+		groupTeamContactRequest.setGroupId(userId);
+		CommonResponse resp = groupDetailsService.saveGroupTeamContact(groupTeamContactRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	 }
+	
+	@GetMapping(value="getGroupTeamContact", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.groupAdmin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String  getGroupTeamContact(@CurrentSecurityContext(expression = "authentication")  Authentication authentication) throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		UserDetailsImpl customUser = (UserDetailsImpl)authentication.getPrincipal();
+		GroupTeamContactRequest groupTeamContactRequest=new GroupTeamContactRequest();
+		Long userId= customUser.getUserId();
+		groupTeamContactRequest.setGroupId(userId);
+		GroupTeamContactResponse resp = groupDetailsService.getGroupTeamContact(groupTeamContactRequest);
+		if (resp != null) {
+
+			respObj.put("groupTeamContactDetail", resp);
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
 		

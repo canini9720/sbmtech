@@ -18,6 +18,10 @@ class SecurityService {
         return "ADMIN";
     }
     
+    public String getGroupAdmin(){
+        return "GROUP_ADMIN";
+    }
+    
     
     
 }
