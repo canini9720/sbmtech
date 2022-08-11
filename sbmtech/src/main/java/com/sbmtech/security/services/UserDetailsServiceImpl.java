@@ -511,7 +511,14 @@ public class UserDetailsServiceImpl implements CustomeUserDetailsService {
 					o.setActive(CommonConstants.INT_ZERO);
 				});
 			}
-			
+			Set<Integer> distinctContactType = new HashSet<>();
+			Set<ContactDTO> duplicateContactType = contactDetailsList
+	                .stream()
+	                .filter(company -> !distinctContactType.add(company.getContactType()))
+	                .collect(Collectors.toSet());
+			if(!duplicateContactType.isEmpty()) {
+				ExceptionUtil.throwException(ExceptionValidationsConstants.DUPLICATE_CONTACT_TYPE, ExceptionUtil.EXCEPTION_VALIDATION);
+			}
 			for(ContactDTO contDet:contactDetailsList) {
 				MemberContactDetailEntity contEnt=new MemberContactDetailEntity();
 				contDet.setUserId(profileRequest.getUserId());
