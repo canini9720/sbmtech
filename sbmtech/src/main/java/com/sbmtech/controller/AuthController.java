@@ -145,6 +145,7 @@ public class AuthController {
 				return ResponseEntity.ok().body(respObj);
 			}else if(!user.getEnabled() && (user.getMemberCategory()==CommonConstants.INT_TWO_GROUP ||  
 					user.getMemberCategory()==CommonConstants.INT_THREE_COMPNAY)) {
+				respObj.put("memberCat",user.getMemberCategory());
 				respObj.put("responseMessage", "deactivatedUser. Contact admin to activiate");
 				respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
 				respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));

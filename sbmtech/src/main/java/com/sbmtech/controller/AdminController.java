@@ -162,6 +162,25 @@ public class AdminController {
 		  return gson.toJson(respObj);
 	 }
 	
+	@PostMapping(value="saveMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
+	@PreAuthorize("hasRole(@securityService.admin) ")
+	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
+	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
+		Gson gson = new Gson();
+		JSONObject respObj = new JSONObject();
+		
+		CommonResponse resp = userDetailsService.saveMemberPersonalDetails(profileRequest);
+		if (resp != null) {
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
+		
+		}else{
+			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
+			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
+		}
+		  return gson.toJson(respObj);
+	  }
+	
 	@GetMapping(value="getMemberContactlDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
 	@PreAuthorize("hasRole(@securityService.admin) ")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
@@ -184,24 +203,7 @@ public class AdminController {
 	 }
 	
 	
-	@PostMapping(value="saveMemberPersonalDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)
-	@PreAuthorize("hasRole(@securityService.admin) ")
-	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-	public String savePersonalDetails(@RequestBody ProfileRequest profileRequest)throws Exception {
-		Gson gson = new Gson();
-		JSONObject respObj = new JSONObject();
-		
-		CommonResponse resp = userDetailsService.saveMemberPersonalDetails(profileRequest);
-		if (resp != null) {
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
-		
-		}else{
-			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.FAILURE_CODE);
-			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.FAILURE_CODE));
-		}
-		  return gson.toJson(respObj);
-	  }
+	
 	
 	
 	@PostMapping(value="saveMemberContactDetails", produces=MediaType.APPLICATION_JSON_VALUE+CommonConstants.CHARSET_UTF8)

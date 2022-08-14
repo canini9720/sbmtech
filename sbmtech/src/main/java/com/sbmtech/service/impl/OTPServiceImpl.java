@@ -82,4 +82,13 @@ public class OTPServiceImpl implements OTPService {
 		return false;
 	}
 
+
+
+
+	@Override
+	public Integer getUserType(Long verificationId) throws Exception {
+		return otpRepository.getUserType(verificationId);
+		
+	}
+
 }

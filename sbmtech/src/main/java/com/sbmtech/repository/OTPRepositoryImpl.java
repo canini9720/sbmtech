@@ -62,4 +62,19 @@ public class OTPRepositoryImpl extends JdbcCommonDao implements OTPRespositoryCu
 		return false;
 	}
 
+	@Override
+	public Integer getUserType(Long verificationId) throws Exception {
+		StoredProcedureQuery qry = this.getEm().createStoredProcedureQuery("sp_get_otp_usertype");
+		
+		qry.registerStoredProcedureParameter("p_verification_id", Long.class, ParameterMode.IN);
+		qry.registerStoredProcedureParameter("p_user_type", Integer.class, ParameterMode.OUT);
+		
+		qry.setParameter("p_verification_id",verificationId);
+		
+		 qry.execute();
+		Integer userType=(Integer)qry.getOutputParameterValue("p_user_type");
+		
+		return userType;
+	}
+
 }

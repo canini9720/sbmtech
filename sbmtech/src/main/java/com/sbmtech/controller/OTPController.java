@@ -80,6 +80,7 @@ public class OTPController {
 		Integer otpCode=otpRequest.getUserOtp();
 		OTPServiceImplUtil.validateRequest(verificationId, otpCode);
 		if(otpService.validateOTP(verificationId,otpCode)) {
+			respObj.put("memberCat", otpService.getUserType(verificationId));
 			respObj.put("message", "OTP validation is Success");
 			respObj.put(CommonConstants.RESPONSE_CODE, CommonConstants.SUCCESS_CODE);
 			respObj.put(CommonConstants.RESPONSE_DESC, CommonUtil.getSuccessOrFailureMessageWithId(CommonConstants.SUCCESS_CODE));
