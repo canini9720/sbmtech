@@ -31,6 +31,7 @@ public class AuthServiceUtil {
 	
 	public static VerifyUserRequest validateForgotPwd(VerifyUserRequest req) throws Exception {
 		if(StringUtils.isEmpty(req.getUsername())) {//by email
+			req.setUsername(null);
 			ExceptionUtil.throwNullOrEmptyValidationException("Member Category", req.getMemberCategory(), true);
 			if(StringUtils.isEmpty(req.getEmail())) {
 				ExceptionUtil.throwException(ExceptionValidationsConstants.USERNAME_OR_EMAIL, ExceptionUtil.EXCEPTION_VALIDATION);

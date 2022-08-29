@@ -71,6 +71,7 @@ import com.sbmtech.payload.response.GroupRegDetailResponse;
 import com.sbmtech.payload.response.GroupTeamContactResponse;
 import com.sbmtech.repository.GDriveUserRepository;
 import com.sbmtech.repository.GroupActivityMasterRepository;
+import com.sbmtech.repository.GroupPartnerRepository;
 import com.sbmtech.repository.GroupTeamContactRepository;
 import com.sbmtech.repository.GroupUserActivityRepository;
 import com.sbmtech.repository.RoleRepository;
@@ -110,6 +111,10 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 	
 	@Autowired
 	GroupUserActivityRepository groupUserActivityRepo;
+
+	@Autowired
+	GroupPartnerRepository groupPartnerRepo;
+	
 	
 	@Autowired
 	GroupActivityMasterRepository groupActivityMasRepo;
@@ -150,9 +155,23 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		User userDb=null;
 		GroupInfoDTO groupDetailDTO=groupRequest.getGroupDetails();
 		Optional<User> userOp = userRepository.findByUserIdAndMemberCategory(groupRequest.getGroupId(),CommonConstants.INT_TWO_GROUP);
-
+		int result=0;
+		List<GroupPartnerDetailEntity> oldPartnerEntity=null;
 		if(userOp.isPresent()) {
 			User user=userOp.get();
+			if(user.getGroupDetailsEntity()!=null && user.getGroupDetailsEntity().getGroupPartnerList()!=null
+					&& !user.getGroupDetailsEntity().getGroupPartnerList().isEmpty() ) {
+				oldPartnerEntity=user.getGroupDetailsEntity().getGroupPartnerList();
+				if(oldPartnerEntity!=null && !oldPartnerEntity.isEmpty()) {
+					oldPartnerEntity.forEach(o -> {
+						o.setActive(CommonConstants.INT_ZERO);
+					});
+					
+					List<Long> oldPartIds = oldPartnerEntity.stream().filter(cont->cont.getActive()==0)
+		                    .map(GroupPartnerDetailEntity::getPartId).collect(Collectors.toList());
+					deleteOldPartners(oldPartIds);
+				}
+			}
 			groupDetailDTO.setGroupId(groupRequest.getGroupId());
 			GroupDetailsEntity groupDetailsEntity=new GroupDetailsEntity();
 			BeanUtils.copyProperties(groupDetailDTO,groupDetailsEntity);
@@ -175,6 +194,14 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 		}
 		return resp;
 
+	}
+	
+	@Override
+	public void deleteOldPartners(List<Long> oldPartIds) throws Exception {
+		if(oldPartIds!=null && !oldPartIds.isEmpty()) {
+			groupPartnerRepo.deleteOldPartners(oldPartIds);
+		}
+		
 	}
 
 	@Override

@@ -37,21 +37,21 @@ public class DSSController {
 	DSSService dssService;
 	
 	@GetMapping("/getBloodGroup")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<BloodGroup> getBloodGroup() throws Exception {
 		return dssService.getAllBloodGroup();
 	}
 	
 	@GetMapping("/getAllContactType")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<ContactTypeMaster> getAllContactType() throws Exception {
 		return dssService.getAllContactType();
 	}
 	
 	@GetMapping("/getAllDocType")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<DocTypeMaster> getAllDocType() throws Exception {
 		return dssService.getAllDocType();
@@ -79,21 +79,21 @@ public class DSSController {
 	}
 	*/
 	@GetMapping("/getAllRole")
-	@PreAuthorize("hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<Role> getAllRole() throws Exception {
 		return dssService.getAllRole();
 	}
 	
 	@GetMapping("/getAllRoleGroupAdmin")
-	@PreAuthorize("hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<RoleDTO> getAllRoleGroupAdmin() throws Exception {
 		return dssService.getAllRoleGroupAdmin();
 	}
 	
 	@GetMapping("/getWorkTimeMaster")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<WorkTimeMaster> getWorkTimeMaster() throws Exception {
 		return dssService.getWorkTimeMaster();
@@ -101,14 +101,14 @@ public class DSSController {
 
 	
 	@GetMapping("/getPaidBasisMaster")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<PaidBasisMaster> getPaidBasisMaster() throws Exception {
 		return dssService.getPaidBasisMaster();
 	}
 	
 	@GetMapping("/getBankMaster")
-	@PreAuthorize("hasRole('MEMBER') or hasRole('GROUP') or hasRole('COMPANY') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group) or hasRole('COMPANY') or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<BankMaster> getBankMaster() throws Exception {
 		return dssService.getBankMaster();

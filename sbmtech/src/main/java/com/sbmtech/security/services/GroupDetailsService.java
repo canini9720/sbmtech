@@ -38,6 +38,7 @@ public interface GroupDetailsService extends UserDetailsService {
 	public BankDetailDTO getGroupBankDetailsById(GroupRequest groupRequest)throws Exception;
 	public CommonResponse saveGroupTeamContact(GroupTeamContactRequest groupRequest)throws Exception;
 	public GroupTeamContactResponse getGroupTeamContact(GroupTeamContactRequest groupTeamContactRequest);
+	public void deleteOldPartners(List<Long> oldPartIds) throws Exception;
 	
 	
 
