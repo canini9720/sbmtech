@@ -51,7 +51,7 @@ public class DSSController {
 	}
 	
 	@GetMapping("/getAllDocType")
-	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.admin)")
+	@PreAuthorize("hasRole(@securityService.member) or hasRole(@securityService.group)  or hasRole(@securityService.admin)")
 	@Operation(summary = "My endpoint", security = @SecurityRequirement(name = "bearerAuth"))
 	public List<DocTypeMaster> getAllDocType() throws Exception {
 		return dssService.getAllDocType();
