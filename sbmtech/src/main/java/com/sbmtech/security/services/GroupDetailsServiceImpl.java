@@ -532,8 +532,8 @@ public class GroupDetailsServiceImpl implements GroupDetailsService {
 				}
 				List<RoleDTO> roleList=personDTO.getPowerList();
 				List<Role> dbRole=roleRepository.findByForGroupAdmin(CommonConstants.INT_ONE);
-				List<Integer> userRoleList = roleList.stream().map(s -> s.getRoleId()).toList();
-				List<Integer> dbRoleList = dbRole.stream().map(s->s.getRoleId()).toList();
+				List<Integer> userRoleList = roleList.stream().map(s -> s.getRoleId()).collect(Collectors.toList());
+				List<Integer> dbRoleList = dbRole.stream().map(s->s.getRoleId()).collect(Collectors.toList());
 				loggerInfo.info("user role list="+userRoleList);
 				loggerInfo.info("db group role list="+dbRoleList);
 				boolean extraRoleAdded=false;
